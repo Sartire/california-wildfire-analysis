@@ -53,6 +53,10 @@ app.layout = html.Div(
                         html.Div(
                             id="cali-graph",
                             children=[
+                                html.P(
+                                    "Chloropleth map of total fire counts by year, split by county",
+                                    id="graph-title",
+                                ),
                                 dcc.Graph(id='cali-wildfires'),
                             ],
                         ),
@@ -134,7 +138,6 @@ def getMostAcresBurntFipsByYear(year):
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
 def update_figure(selected_year):
-    #filtered_fires_by_fips = yearlyData.get(selected_year)
     filtered_fires_by_fips = getFireCountsByYear(selected_year)
     with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
         counties = json.load(response)
