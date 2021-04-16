@@ -3,8 +3,9 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import pandas as pd
-#import plotly.graph_objs as go
+import plotly.graph_objs as go
 import plotly.express as px
+import plotly.figure_factory as ff
 from urllib.request import urlopen
 import json
 
@@ -12,7 +13,9 @@ app = dash.Dash()
 
 fires = pd.read_csv('./data/fires_cleaned/final_fires_cleaned.csv')
 fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
+fires= fires[fires['FIRE_YEAR'] >= 2003]
 years = fires['FIRE_YEAR'].unique()
+
 
 app.layout = html.Div(
     id="root",
@@ -62,38 +65,37 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-
-            ],
-        ),
-        html.Div(
-            id="graph-container",
-            children=[
-                html.P(id="chart-selector", children="Select chart:"),
-                dcc.Dropdown(
-                    options=[
-                        {
-                            "label": "Histogram of fire catalysts (single year)",
-                            "value": "show_fire_catalysts_single_year",
-                            },
-                        {
-                            "label": "Most destructive fires (single year)",
-                            "value": "show_largest_fires_table_single_year",
-                            },
-                        ],
-                    value="show_fire_catalysts_single_year",
-                    id="chart-dropdown",
-                    ),
-                dcc.Graph(
-                    id="selected-data",
-                    figure=dict(
-                        data=[dict(x=0, y=0)],
-                        layout=dict(
-                            paper_bgcolor="#F4F4F8",
-                            plot_bgcolor="#F4F4F8",
-                            autofill=True,
-                            margin=dict(t=75, r=50, b=100, l=50),
+                html.Div(
+                    id="graph-container",
+                    children=[
+                        html.P(id="chart-selector", children="Select chart:"),
+                        dcc.Dropdown(
+                            options=[
+                                {
+                                    "label": "Histogram of fire catalysts (single year)",
+                                    "value": "show_fire_catalysts_single_year",
+                                    },
+                                {
+                                    "label": "Most destructive fires (single year)",
+                                    "value": "show_largest_fires_table_single_year",
+                                    },
+                                ],
+                            value="show_fire_catalysts_single_year",
+                            id="chart-dropdown",
                             ),
-                        ),
+                        dcc.Graph(
+                            id="selected-data",
+                            figure=dict(
+                                data=[dict(x=0, y=0)],
+                                layout=dict(
+                                    paper_bgcolor="#F4F4F8",
+                                    plot_bgcolor="#F4F4F8",
+                                    autofill=True,
+                                    margin=dict(t=0, r=0, b=0, l=0),
+                                    ),
+                                ),
+                            ),
+                        ],
                     ),
                 ],
             ),
@@ -134,23 +136,48 @@ def getMostAcresBurntFipsByYear(year):
     acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
     return acresBurnt
 
+def getCaliGeoJson():
+    with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+        counties = json.load(response)
+    cali = []
+    for feature in counties['features']:
+        if feature["properties"]["STATE"] == '06':
+            cali.append(feature)
+    caliDict = {"features": cali, 'type': 'FeatureCollection'}
+    return caliDict
+
+cali = getCaliGeoJson()
+
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
 def update_figure(selected_year):
     filtered_fires_by_fips = getFireCountsByYear(selected_year)
-    with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-        counties = json.load(response)
-    fig = px.choropleth(filtered_fires_by_fips, geojson=counties, locations='fips',
+    '''
+    fig = px.choropleth(filtered_fires_by_fips, geojson=cali, locations='fips',
                         color='fire_count',
-                        color_continuous_scale="Viridis",
+                        color_continuous_scale="Inferno",
                         scope="usa",
                         range_color=(0, 500),
                         labels={'fire_count':'Total Fires'}
                         )
-
-    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    
     fig.update_geos(fitbounds="locations", visible=False)
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    #fig.update_layout(coloraxis_showscale=False)
+   '''
+    fig = go.Figure(go.Choroplethmapbox(geojson=cali,
+                                        locations=filtered_fires_by_fips.fips,
+                                        z=filtered_fires_by_fips.fire_count,
+                                        colorscale="Inferno",
+                                        zmin=0,
+                                        zmax=500,
+                                        marker_opacity=0.7,
+                                        marker_line_width=0)
+                    )
+    fig.update_layout(mapbox_style="carto-positron",
+                      mapbox_zoom=4.95, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
 
 @app.callback(
