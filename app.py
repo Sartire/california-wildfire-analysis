@@ -72,10 +72,6 @@ app.layout = html.Div(
                             "value": "show_fire_catalysts_single_year",
                             },
                         {
-                            "label": "Linear Relationship between total rainfall and acreage burnt (all time)",
-                            "value": "rainfall_to_acres_burnt",
-                            },
-                        {
                             "label": "Most destructive fires (single year)",
                             "value": "show_largest_fires_table_single_year",
                             },
@@ -104,20 +100,42 @@ def getYearlyDataDict(years):
   yearlyData = {}
   for year in years:
     filtered = fires[fires['FIRE_YEAR'] == year]
-    filtered_fips = filtered['OBJECTID'].groupby(filtered['STCT_FIPS']).count()
-    filtered_fips = filtered_fips.to_frame()
-    filtered_fips.reset_index(inplace=True)
-    filtered_fips = filtered_fips.rename(columns={'OBJECTID': 'fire_count', 'STCT_FIPS':'fips'})
-    yearlyData[year] = filtered_fips
+    yearlyData[year] = filtered
   return yearlyData
 
 yearlyData = getYearlyDataDict(years)
+
+def getFireCountsByYear(year):
+    yearDF = yearlyData.get(year)
+    filtered_fips = yearDF['OBJECTID'].groupby(yearDF['STCT_FIPS']).count()
+    filtered_fips = filtered_fips.to_frame()
+    filtered_fips.reset_index(inplace=True)
+    filtered_fips = filtered_fips.rename(columns={'OBJECTID': 'fire_count', 'STCT_FIPS':'fips'})
+    return filtered_fips
+
+def getFireCatalystsByYear(year):
+    yearDF = yearlyData.get(year)
+    catalysts = yearDF['OBJECTID'].groupby(yearDF['STAT_CAUSE_DESCR']).count()
+    catalysts = catalysts.to_frame()
+    catalysts.reset_index(inplace=True)
+    catalysts = catalysts.rename(columns={'OBJECTID': 'fire_count', 'STAT_CAUSE_DESCR':'catalyst'})
+    return catalysts 
+
+def getMostAcresBurntFipsByYear(year):
+    yearDF = yearlyData.get(year)
+    acresBurnt = yearDF['FIRE_SIZE'].groupby(yearDF['STCT_FIPS']).sum()
+    acresBurnt = acresBurnt.to_frame()
+    acresBurnt.reset_index(inplace=True)
+    acresBurnt = acresBurnt.rename(columns={'FIRE_SIZE': 'total_acres_burnt', 'STCT_FIPS':'fips'})
+    acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
+    return acresBurnt
 
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
 def update_figure(selected_year):
-    filtered_fires_by_fips = yearlyData.get(selected_year)
+    #filtered_fires_by_fips = yearlyData.get(selected_year)
+    filtered_fires_by_fips = getFireCountsByYear(selected_year)
     with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
         counties = json.load(response)
     fig = px.choropleth(filtered_fires_by_fips, geojson=counties, locations='fips',
@@ -132,5 +150,37 @@ def update_figure(selected_year):
     fig.update_geos(fitbounds="locations", visible=False)
     return fig
 
+@app.callback(
+    Output("selected-data", "figure"),
+    [
+     Input('year-slider', 'value'),
+     Input("chart-dropdown", "value"),
+    ],
+)
+def update_chart(selected_year, chart_dropdown):
+    if chart_dropdown == "show_fire_catalysts_single_year":
+        catalysts_by_year = getFireCatalystsByYear(selected_year)
+        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count')
+    elif chart_dropdown == "show_largest_fires_table_single_year":
+        acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
+        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt')
+    return fig
+
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
