@@ -229,13 +229,13 @@ def update_chart(selected_year, chart_dropdown):
     elif chart_dropdown == "show_largest_fires_table_single_year":
         acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
 
-        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt')
+        fig = px.bar(acres_burnt_by_year, x='county', y='total_acres_burnt')
 
         fig_layout = fig["layout"]
         fig_data = fig["data"]
 
         fig_layout["yaxis"]["title"] = ""
-        fig_layout["xaxis"]["title"] = "Fire Catalyst"
+        fig_layout["xaxis"]["title"] = "Acreage Burnt by County"
         fig_data[0]["marker"]["color"] = "#fd6e6e"
         fig_data[0]["marker"]["opacity"] = 1
         fig_data[0]["marker"]["line"]["width"] = 0
