@@ -181,7 +181,7 @@ def update_figure(selected_year):
                     )
     fig.update_layout(mapbox_accesstoken="pk.eyJ1IjoiY3NjaHJvZWQiLCJhIjoiY2s3YjJwcWk1MDFyNzNrbnpiaGdlajltbCJ9.8jO290WpRrStFoFl6oXDdA",
         mapbox_style="mapbox://styles/cschroed/cknl0nnlf219117qmeizntn9q",
-        mapbox_zoom=4.95, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
+        mapbox_zoom=5.20, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
 
     fig_layout = fig["layout"]
     fig_layout["paper_bgcolor"] = "rgba(0,0,0,0)"
