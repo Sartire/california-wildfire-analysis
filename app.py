@@ -10,11 +10,15 @@ import json
 
 app = dash.Dash()
 
+mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
+mapbox_style = "mapbox://styles/plotlymapbox/cjvprkf3t1kns1cqjxuxmwixz"
+
 fires = pd.read_csv('./data/fires_cleaned/final_fires_cleaned.csv')
 fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
 fires= fires[fires['FIRE_YEAR'] >= 2003]
 years = fires['FIRE_YEAR'].unique()
 
+description = "Between 2003 and 2015, there were an estimated 189,000 wildfires across the state of California. This map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires."
 
 app.layout = html.Div(
     id="root",
@@ -22,11 +26,11 @@ app.layout = html.Div(
         html.Div(
             id="header",
             children=[
-                html.Img(id="logo", src=app.get_asset_url("Picture2.png"), style={'height':'15%', 'width':'15%'}),
-                html.H4(children="Number of California Wildfires"),
+                html.Img(id="logo", src=app.get_asset_url("uva-sds-white.png")),
+                html.H4(children="Visualizing California Wildfires (2003-2015)"),
                 html.P(
                     id="description",
-                    children="Number of wildfires in California aggregated by county and year.",
+                    children=description,
                     ),
                 ],
             ),
@@ -88,8 +92,8 @@ app.layout = html.Div(
                             figure=dict(
                                 data=[dict(x=0, y=0)],
                                 layout=dict(
-                                    paper_bgcolor="#F4F4F8",
-                                    plot_bgcolor="#F4F4F8",
+                                    paper_bgcolor="#3f3332", #F4F4F8
+                                    plot_bgcolor="#3f3332",
                                     autofill=True,
                                     margin=dict(t=0, r=0, b=0, l=0),
                                     ),
@@ -125,7 +129,7 @@ def getFireCatalystsByYear(year):
     catalysts = catalysts.to_frame()
     catalysts.reset_index(inplace=True)
     catalysts = catalysts.rename(columns={'OBJECTID': 'fire_count', 'STAT_CAUSE_DESCR':'catalyst'})
-    return catalysts 
+    return catalysts
 
 def getMostAcresBurntFipsByYear(year):
     yearDF = yearlyData.get(year)
@@ -161,7 +165,7 @@ def update_figure(selected_year):
                         range_color=(0, 500),
                         labels={'fire_count':'Total Fires'}
                         )
-    
+
     fig.update_geos(fitbounds="locations", visible=False)
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     #fig.update_layout(coloraxis_showscale=False)
@@ -169,15 +173,26 @@ def update_figure(selected_year):
     fig = go.Figure(go.Choroplethmapbox(geojson=cali,
                                         locations=filtered_fires_by_fips.fips,
                                         z=filtered_fires_by_fips.fire_count,
-                                        colorscale="Inferno",
+                                        colorscale="redor",
                                         zmin=0,
                                         zmax=500,
                                         marker_opacity=0.7,
                                         marker_line_width=0)
                     )
-    fig.update_layout(mapbox_style="carto-positron",
-                      mapbox_zoom=5.2, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
+    fig.update_layout(mapbox_accesstoken="pk.eyJ1IjoiY3NjaHJvZWQiLCJhIjoiY2s3YjJwcWk1MDFyNzNrbnpiaGdlajltbCJ9.8jO290WpRrStFoFl6oXDdA",
+        mapbox_style="mapbox://styles/cschroed/cknl0nnlf219117qmeizntn9q",
+        mapbox_zoom=4.95, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
+
+    fig_layout = fig["layout"]
+    fig_layout["paper_bgcolor"] = "rgba(0,0,0,0)"
+    fig_layout["font"]["color"] = "#fcc9a1"
+    fig_layout["xaxis"]["tickfont"]["color"] = "#fcc9a1"
+    fig_layout["yaxis"]["tickfont"]["color"] = "#fcc9a1"
+
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+
+
+
     return fig
 
 @app.callback(
@@ -190,27 +205,52 @@ def update_figure(selected_year):
 def update_chart(selected_year, chart_dropdown):
     if chart_dropdown == "show_fire_catalysts_single_year":
         catalysts_by_year = getFireCatalystsByYear(selected_year)
-        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', color="fire_count")
+
+        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title = "Histogram of fire catalysts <b>{0}</b>".format(selected_year))
+
+        fig_layout = fig["layout"]
+        fig_data = fig["data"]
+
+        fig_layout["yaxis"]["title"] = ""
+        fig_layout["xaxis"]["title"] = "Fire Catalyst"
+        fig_data[0]["marker"]["color"] = "#fd6e6e"
+        fig_data[0]["marker"]["opacity"] = 1
+        fig_data[0]["marker"]["line"]["width"] = 0
+        fig_data[0]["textposition"] = "outside"
+        fig_layout["paper_bgcolor"] = "#242424"
+        fig_layout["plot_bgcolor"] = "#242424"
+        fig_layout["font"]["color"] = "#fd6e6e"
+        fig_layout["title"]["font"]["color"] = "#fd6e6e"
+        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+        fig_layout["xaxis"]["gridcolor"] = "#504240"
+        fig_layout["yaxis"]["gridcolor"] = "#504240"
+
+
     elif chart_dropdown == "show_largest_fires_table_single_year":
         acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
-        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt', color="total_acres_burnt")
+
+        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt')
+
+        fig_layout = fig["layout"]
+        fig_data = fig["data"]
+
+        fig_layout["yaxis"]["title"] = ""
+        fig_layout["xaxis"]["title"] = "Fire Catalyst"
+        fig_data[0]["marker"]["color"] = "#fd6e6e"
+        fig_data[0]["marker"]["opacity"] = 1
+        fig_data[0]["marker"]["line"]["width"] = 0
+        fig_data[0]["textposition"] = "outside"
+        fig_layout["paper_bgcolor"] = "#242424"
+        fig_layout["plot_bgcolor"] = "#242424"
+        fig_layout["font"]["color"] = "#fd6e6e"
+        fig_layout["title"]["font"]["color"] = "#fd6e6e"
+        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+        fig_layout["xaxis"]["gridcolor"] = "#504240"
+        fig_layout["yaxis"]["gridcolor"] = "#504240"
+
     return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
