@@ -5,7 +5,6 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.express as px
-import plotly.figure_factory as ff
 from urllib.request import urlopen
 import json
 
@@ -23,6 +22,7 @@ app.layout = html.Div(
         html.Div(
             id="header",
             children=[
+                html.Img(id="logo", src=app.get_asset_url("Picture2.png"), style={'height':'15%', 'width':'15%'}),
                 html.H4(children="Number of California Wildfires"),
                 html.P(
                     id="description",
@@ -176,7 +176,7 @@ def update_figure(selected_year):
                                         marker_line_width=0)
                     )
     fig.update_layout(mapbox_style="carto-positron",
-                      mapbox_zoom=4.95, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
+                      mapbox_zoom=5.2, mapbox_center = {"lat": 37.502236, "lon": -120.962930})
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
 
@@ -190,10 +190,10 @@ def update_figure(selected_year):
 def update_chart(selected_year, chart_dropdown):
     if chart_dropdown == "show_fire_catalysts_single_year":
         catalysts_by_year = getFireCatalystsByYear(selected_year)
-        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count')
+        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', color="fire_count")
     elif chart_dropdown == "show_largest_fires_table_single_year":
         acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
-        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt')
+        fig = px.bar(acres_burnt_by_year, x='fips', y='total_acres_burnt', color="total_acres_burnt")
     return fig
 
 if __name__ == '__main__':

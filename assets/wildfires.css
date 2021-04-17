@@ -230,7 +230,7 @@ body {
     line-height: 1.6;
     font-weight: 400;
     font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #7fafdf;
+    color: #ecba8b;
     margin: 0;
 }
 
@@ -318,7 +318,7 @@ p {
 
 #description {
     font-size: 1.5rem;
-    border-left: #2cfec1 solid 1rem;
+    border-left: #E57200 solid 1rem;
     padding-left: 1rem;
     max-width: 100rem;
     margin: 2rem 0 3rem 0;
@@ -360,13 +360,13 @@ blockquote {
 /* Links
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 a {
-    color: #1EAEDB;
+    color: #E57200;
     text-decoration: underline;
     cursor: pointer;
 }
 
 a:hover {
-    color: #0FA0CE;
+    color: #E57200;
 }
 
 
@@ -417,8 +417,8 @@ input[type="submit"].button-primary,
 input[type="reset"].button-primary,
 input[type="button"].button-primary {
     color: #FFF;
-    background-color: #33C3F0;
-    border-color: #33C3F0;
+    background-color: #faf8f6;
+    border-color: #f8f6f4;
 }
 
 .button.button-primary:hover,
@@ -432,8 +432,8 @@ input[type="submit"].button-primary:focus,
 input[type="reset"].button-primary:focus,
 input[type="button"].button-primary:focus {
     color: #FFF;
-    background-color: #1EAEDB;
-    border-color: #1EAEDB;
+    background-color: #f8f6f4;
+    border-color: #f8f6f4;
 }
 
 
@@ -488,7 +488,7 @@ input[type="url"]:focus,
 input[type="password"]:focus,
 textarea:focus,
 select:focus {
-    border: 1px solid #33C3F0;
+    border: 1px solid #f8f6f4;
     outline: 0;
 }
 
@@ -648,11 +648,11 @@ hr {
 }
 
 .rc-slider-dot-active, .rc-slider-handle {
-    border-color: #2cfec1 !important;
+    border-color: #E57200 !important;
 }
 
 .rc-slider-track {
-    background-color: #2cfec1 !important
+    background-color: #E57200 !important
 }
 
 .rc-slider-rail {
@@ -789,16 +789,16 @@ hr {
 }
 
 .Select-control {
-    color: #7fafdf !important;
+    color: #f8f6f4 !important;
 }
 
 .Select {
-    color: #7fafdf !important;
+    color: #E57200 !important;
 }
 
 .Select-menu-outer {
-    background-color: #252e3f !important;
-    border: 1px solid #7fafdf !important;
+    background-color: #fdfdfd !important;
+    border: 1px solid #E57200 !important;
 }
 
 .Select div {
@@ -811,11 +811,11 @@ hr {
 }
 
 .Select-value-label {
-    color: #7fafdf !important;
+    color: #ecba8b!important;
 }
 
 .Select--single > .Select-control .Select-value, .Select-placeholder {
-    border: 1px solid #7fafdf !important;
+    border: 1px solid #E57200 !important;
     border-radius: 4px !important;
 }
 
