@@ -113,7 +113,29 @@ def getYearlyDataDict(years):
     yearlyData[year] = filtered
   return yearlyData
 
+def getCaliGeoJson():
+    with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
+        counties = json.load(response)
+    cali = []
+    for feature in counties['features']:
+        if feature["properties"]["STATE"] == '06':
+            cali.append(feature)
+    caliDict = {"features": cali, 'type': 'FeatureCollection'}
+    return caliDict
+
+def getCountyNames(state):
+    fips = []
+    county = []
+    for feature in state['features']:
+        fips.append(feature["properties"]["STATE"] + feature["properties"]["COUNTY"])
+        county.append(feature['properties']['NAME'])
+    d = {'fips':fips,'county':county}
+    df = pd.DataFrame(d)
+    return df
+
 yearlyData = getYearlyDataDict(years)
+cali = getCaliGeoJson()
+caliCounties = getCountyNames(cali)
 
 def getFireCountsByYear(year):
     yearDF = yearlyData.get(year)
@@ -121,6 +143,7 @@ def getFireCountsByYear(year):
     filtered_fips = filtered_fips.to_frame()
     filtered_fips.reset_index(inplace=True)
     filtered_fips = filtered_fips.rename(columns={'OBJECTID': 'fire_count', 'STCT_FIPS':'fips'})
+    filtered_fips = filtered_fips.merge(caliCounties, on="fips")
     return filtered_fips
 
 def getFireCatalystsByYear(year):
@@ -137,39 +160,17 @@ def getMostAcresBurntFipsByYear(year):
     acresBurnt = acresBurnt.to_frame()
     acresBurnt.reset_index(inplace=True)
     acresBurnt = acresBurnt.rename(columns={'FIRE_SIZE': 'total_acres_burnt', 'STCT_FIPS':'fips'})
+    acresBurnt = acresBurnt.merge(caliCounties, on="fips")
     acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
     return acresBurnt
 
-def getCaliGeoJson():
-    with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-        counties = json.load(response)
-    cali = []
-    for feature in counties['features']:
-        if feature["properties"]["STATE"] == '06':
-            cali.append(feature)
-    caliDict = {"features": cali, 'type': 'FeatureCollection'}
-    return caliDict
 
-cali = getCaliGeoJson()
 
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
 def update_figure(selected_year):
     filtered_fires_by_fips = getFireCountsByYear(selected_year)
-    '''
-    fig = px.choropleth(filtered_fires_by_fips, geojson=cali, locations='fips',
-                        color='fire_count',
-                        color_continuous_scale="Inferno",
-                        scope="usa",
-                        range_color=(0, 500),
-                        labels={'fire_count':'Total Fires'}
-                        )
-
-    fig.update_geos(fitbounds="locations", visible=False)
-    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-    #fig.update_layout(coloraxis_showscale=False)
-   '''
     fig = go.Figure(go.Choroplethmapbox(geojson=cali,
                                         locations=filtered_fires_by_fips.fips,
                                         z=filtered_fires_by_fips.fire_count,
@@ -177,7 +178,8 @@ def update_figure(selected_year):
                                         zmin=0,
                                         zmax=500,
                                         marker_opacity=0.7,
-                                        marker_line_width=0)
+                                        marker_line_width=0,
+                                        )
                     )
     fig.update_layout(mapbox_accesstoken="pk.eyJ1IjoiY3NjaHJvZWQiLCJhIjoiY2s3YjJwcWk1MDFyNzNrbnpiaGdlajltbCJ9.8jO290WpRrStFoFl6oXDdA",
         mapbox_style="mapbox://styles/cschroed/cknl0nnlf219117qmeizntn9q",
@@ -190,9 +192,6 @@ def update_figure(selected_year):
     fig_layout["yaxis"]["tickfont"]["color"] = "#fcc9a1"
 
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-
-
     return fig
 
 @app.callback(
