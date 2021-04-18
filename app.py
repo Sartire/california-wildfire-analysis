@@ -196,13 +196,10 @@ def getAvgFireCatalystsByYear(year):
 def getFireOverTimeByYear(year):
     yearDF = yearlyData.get(year)
     fires = yearDF[['DATETIME', 'FIRE_SIZE']]
-    #fires['DATETIME'] = pd.to_datetime(fires['DATETIME'])
-    #maxsize = 100 #Class C fires['FIRE_SIZE'].mean() + (fires['FIRE_SIZE'].std()*1)
-    #fires = fires[fires['FIRE_SIZE'] < maxsize]
-    #fires = fires.to_frame()
     fires.reset_index(inplace=True)
     fires = fires.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
     return fires
+
 # # Will not work until the FOD_ID is in the final_fires_cleaned data set
 # def getMostAcresBurntCountyByYear(year):
 #     yearDF = yearlyData.get(year)
@@ -213,19 +210,23 @@ def getFireOverTimeByYear(year):
 #     acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
 #     return acresBurnt
 
-
-def getCaliGeoJson():
-    with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
-        counties = json.load(response)
-    cali = []
-    for feature in counties['features']:
-        if feature["properties"]["STATE"] == '06':
-            cali.append(feature)
-    caliDict = {"features": cali, 'type': 'FeatureCollection'}
-    return caliDict
-
-
-cali = getCaliGeoJson()
+def barChartStyling(fig, title):
+    fig_layout = fig["layout"]
+    fig_data = fig["data"]
+    fig_layout["yaxis"]["title"] = ""
+    fig_layout["xaxis"]["title"] = title
+    fig_data[0]["marker"]["color"] = "#fd6e6e"
+    fig_data[0]["marker"]["opacity"] = 1
+    fig_data[0]["marker"]["line"]["width"] = 0
+    fig_data[0]["textposition"] = "outside"
+    fig_layout["paper_bgcolor"] = "#242424"
+    fig_layout["plot_bgcolor"] = "#242424"
+    fig_layout["font"]["color"] = "#fd6e6e"
+    fig_layout["title"]["font"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["gridcolor"] = "#504240"
+    fig_layout["yaxis"]["gridcolor"] = "#504240"
 
 
 @app.callback(
@@ -267,73 +268,18 @@ def update_figure(selected_year):
 def update_chart(selected_year, chart_dropdown):
     if chart_dropdown == "show_fire_catalysts_single_year":
         catalysts_by_year = getFireCatalystsByYear(selected_year)
-
         fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title = "Histogram of fire catalysts <b>{0}</b>".format(selected_year))
-
-        fig_layout = fig["layout"]
-        fig_data = fig["data"]
-
-        fig_layout["yaxis"]["title"] = ""
-        fig_layout["xaxis"]["title"] = "Fire Catalyst"
-        fig_data[0]["marker"]["color"] = "#fd6e6e"
-        fig_data[0]["marker"]["opacity"] = 1
-        fig_data[0]["marker"]["line"]["width"] = 0
-        fig_data[0]["textposition"] = "outside"
-        fig_layout["paper_bgcolor"] = "#242424"
-        fig_layout["plot_bgcolor"] = "#242424"
-        fig_layout["font"]["color"] = "#fd6e6e"
-        fig_layout["title"]["font"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["gridcolor"] = "#504240"
-        fig_layout["yaxis"]["gridcolor"] = "#504240"
-
-
+        barChartStyling(fig, "Fire Catalyst")
+        
     elif chart_dropdown == "show_largest_fires_table_single_year":
         acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
-
         fig = px.bar(acres_burnt_by_year, x='county', y='total_acres_burnt')
-
-        fig_layout = fig["layout"]
-        fig_data = fig["data"]
-
-        fig_layout["yaxis"]["title"] = ""
-        fig_layout["xaxis"]["title"] = "Acreage Burnt by County"
-        fig_data[0]["marker"]["color"] = "#fd6e6e"
-        fig_data[0]["marker"]["opacity"] = 1
-        fig_data[0]["marker"]["line"]["width"] = 0
-        fig_data[0]["textposition"] = "outside"
-        fig_layout["paper_bgcolor"] = "#242424"
-        fig_layout["plot_bgcolor"] = "#242424"
-        fig_layout["font"]["color"] = "#fd6e6e"
-        fig_layout["title"]["font"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["gridcolor"] = "#504240"
-        fig_layout["yaxis"]["gridcolor"] = "#504240"
-
-
+        barChartStyling(fig, "Acreage Burnt by County")
+        
     elif chart_dropdown == "show_fire_catalysts_avg_single_year":
         catalysts_by_year_avg = getAvgFireCatalystsByYear(selected_year)
         fig = px.bar(catalysts_by_year_avg, x='catalyst', y='fire_avg_size', color="fire_avg_size")
-
-        fig_layout = fig["layout"]
-        fig_data = fig["data"]
-
-        fig_layout["yaxis"]["title"] = ""
-        fig_layout["xaxis"]["title"] = "Acreage Burnt by County"
-        fig_data[0]["marker"]["color"] = "#fd6e6e"
-        fig_data[0]["marker"]["opacity"] = 1
-        fig_data[0]["marker"]["line"]["width"] = 0
-        fig_data[0]["textposition"] = "outside"
-        fig_layout["paper_bgcolor"] = "#242424"
-        fig_layout["plot_bgcolor"] = "#242424"
-        fig_layout["font"]["color"] = "#fd6e6e"
-        fig_layout["title"]["font"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["gridcolor"] = "#504240"
-        fig_layout["yaxis"]["gridcolor"] = "#504240"
+        barChartStyling(fig, "Avg Fire Catalysts by County")
         
     elif chart_dropdown == "show_fire_over_time_single_year_C":
         fires_over_time_C = getFireOverTimeByYear(selected_year)
