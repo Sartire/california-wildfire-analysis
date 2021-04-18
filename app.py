@@ -81,6 +81,14 @@ app.layout = html.Div(
                                 {
                                     "label": "Histogram of fire catalysts average (single year)",
                                     "value": "show_fire_catalysts_avg_single_year",
+                                },
+                                {
+                                    "label": "Fire size over time (single year, Class A-C)",
+                                    "value": "show_fire_over_time_single_year_C",
+                                },
+                                {
+                                    "label": "Fire size over time (single year, Class D-G)",
+                                    "value": "show_fire_over_time_single_year_D",
                                 }
                             ],
                             value="show_fire_catalysts_single_year",
@@ -154,6 +162,18 @@ def getAvgFireCatalystsByYear(year):
     catalysts.reset_index(inplace=True)
     catalysts = catalysts.rename(columns={'FIRE_SIZE': 'fire_avg_size', 'STAT_CAUSE_DESCR': 'catalyst'})
     return catalysts
+
+# For "Fire size over time (single year)" graph aka "show_fire_over_time_single_year",
+def getFireOverTimeByYear(year):
+    yearDF = yearlyData.get(year)
+    fires = yearDF[['DATETIME', 'FIRE_SIZE']]
+    #fires['DATETIME'] = pd.to_datetime(fires['DATETIME'])
+    #maxsize = 100 #Class C fires['FIRE_SIZE'].mean() + (fires['FIRE_SIZE'].std()*1)
+    #fires = fires[fires['FIRE_SIZE'] < maxsize]
+    #fires = fires.to_frame()
+    fires.reset_index(inplace=True)
+    fires = fires.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
+    return fires
 
 # # Will not work until the FOD_ID is in the final_fires_cleaned data set
 # def getMostAcresBurntCountyByYear(year):
@@ -230,6 +250,14 @@ def update_chart(selected_year, chart_dropdown):
     elif chart_dropdown == "show_fire_catalysts_avg_single_year":
         catalysts_by_year_avg = getAvgFireCatalystsByYear(selected_year)
         fig = px.bar(catalysts_by_year_avg, x='catalyst', y='fire_avg_size', color="fire_avg_size")
+    elif chart_dropdown == "show_fire_over_time_single_year_C":
+        fires_over_time_C = getFireOverTimeByYear(selected_year)
+        fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
+        fig = px.scatter(fires_over_time_C, x='Time', y='fire_size', color="fire_size")
+    elif chart_dropdown == "show_fire_over_time_single_year_D":
+        fires_over_time_D = getFireOverTimeByYear(selected_year)
+        fires_over_time_D = fires_over_time_D[fires_over_time_D['fire_size'] >= 100]
+        fig = px.scatter(fires_over_time_D, x='Time', y='fire_size', color="fire_size")
     return fig
 
 
