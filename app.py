@@ -10,8 +10,9 @@ import json
 
 app = dash.Dash()
 
-mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
-mapbox_style = "mapbox://styles/plotlymapbox/cjvprkf3t1kns1cqjxuxmwixz"
+# Not needed when using the custom Mapbox basemap
+#mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
+#mapbox_style = "mapbox://styles/plotlymapbox/cjvprkf3t1kns1cqjxuxmwixz"
 
 fires = pd.read_csv('./data/fires_cleaned/final_fires_cleaned.csv')
 fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
@@ -166,7 +167,7 @@ def getFireCountsByYear(year):
 # For "Histogram of fire catalysts count (single year)" graph aka "show_fire_catalysts_single_year"
 def getFireCatalystsByYear(year):
     yearDF = yearlyData.get(year)
-    catalysts = yearDF['OBJECTID'].groupby(yearDF['STAT_CAUSE_DESCR']).count().sort_values()
+    catalysts = yearDF['OBJECTID'].groupby(yearDF['STAT_CAUSE_DESCR']).count().sort_values(ascending=False)
     catalysts = catalysts.to_frame()
     catalysts.reset_index(inplace=True)
     catalysts = catalysts.rename(columns={'OBJECTID': 'fire_count', 'STAT_CAUSE_DESCR':'catalyst'})
@@ -175,7 +176,7 @@ def getFireCatalystsByYear(year):
 # For "Most destructive fires (single year)", aka "show_largest_fires_table_single_year"
 def getMostAcresBurntFipsByYear(year):
     yearDF = yearlyData.get(year)
-    acresBurnt = yearDF['FIRE_SIZE'].groupby(yearDF['STCT_FIPS']).sum().sort_values()
+    acresBurnt = yearDF['FIRE_SIZE'].groupby(yearDF['STCT_FIPS']).sum().sort_values(ascending=False)
     acresBurnt = acresBurnt.to_frame()
     acresBurnt.reset_index(inplace=True)
     acresBurnt = acresBurnt.rename(columns={'FIRE_SIZE': 'total_acres_burnt', 'STCT_FIPS': 'fips'})
@@ -186,7 +187,7 @@ def getMostAcresBurntFipsByYear(year):
 # For "Histogram of fire catalysts average (single year)" graph aka "show_fire_catalysts_avg_single_year"
 def getAvgFireCatalystsByYear(year):
     yearDF = yearlyData.get(year)
-    catalysts = yearDF.groupby(yearDF['STAT_CAUSE_DESCR'])['FIRE_SIZE'].mean().sort_values()
+    catalysts = yearDF.groupby(yearDF['STAT_CAUSE_DESCR'])['FIRE_SIZE'].mean().sort_values(ascending=False)
     catalysts = catalysts.to_frame()
     catalysts.reset_index(inplace=True)
     catalysts = catalysts.rename(columns={'FIRE_SIZE': 'fire_avg_size', 'STAT_CAUSE_DESCR': 'catalyst'})
@@ -210,11 +211,11 @@ def getFireOverTimeByYear(year):
 #     acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
 #     return acresBurnt
 
-def barChartStyling(fig, title):
+def barChartStyling(fig, y_label, x_label):
     fig_layout = fig["layout"]
     fig_data = fig["data"]
-    fig_layout["yaxis"]["title"] = ""
-    fig_layout["xaxis"]["title"] = title
+    fig_layout["yaxis"]["title"] = y_label
+    fig_layout["xaxis"]["title"] = x_label
     fig_data[0]["marker"]["color"] = "#fd6e6e"
     fig_data[0]["marker"]["opacity"] = 1
     fig_data[0]["marker"]["line"]["width"] = 0
@@ -228,6 +229,19 @@ def barChartStyling(fig, title):
     fig_layout["xaxis"]["gridcolor"] = "#504240"
     fig_layout["yaxis"]["gridcolor"] = "#504240"
 
+def scatterPlotStyling(fig, y_label, x_label):
+    fig_layout = fig["layout"]
+    fig_data = fig["data"]
+    fig_layout["yaxis"]["title"] = y_label
+    fig_layout["xaxis"]["title"] = x_label
+    fig_layout["paper_bgcolor"] = "#242424"
+    fig_layout["plot_bgcolor"] = "#242424"
+    fig_layout["font"]["color"] = "#fd6e6e"
+    fig_layout["title"]["font"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["gridcolor"] = "#504240"
+    fig_layout["yaxis"]["gridcolor"] = "#504240"
 
 @app.callback(
     Output('cali-wildfires', 'figure'),
@@ -268,28 +282,30 @@ def update_figure(selected_year):
 def update_chart(selected_year, chart_dropdown):
     if chart_dropdown == "show_fire_catalysts_single_year":
         catalysts_by_year = getFireCatalystsByYear(selected_year)
-        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title = "Histogram of fire catalysts <b>{0}</b>".format(selected_year))
-        barChartStyling(fig, "Fire Catalyst")
+        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title = "Fires by Catalyst, <b>{0}</b>".format(selected_year))
+        barChartStyling(fig, "Number of Fires", "Fire Catalyst")
         
     elif chart_dropdown == "show_largest_fires_table_single_year":
         acres_burnt_by_year = getMostAcresBurntFipsByYear(selected_year)
-        fig = px.bar(acres_burnt_by_year, x='county', y='total_acres_burnt')
-        barChartStyling(fig, "Acreage Burnt by County")
+        fig = px.bar(acres_burnt_by_year, x='county', y='total_acres_burnt', title = "Acreage Burnt by County, <b>{0}</b>".format(selected_year))
+        barChartStyling(fig, "Acres Burnt", "County")
         
     elif chart_dropdown == "show_fire_catalysts_avg_single_year":
         catalysts_by_year_avg = getAvgFireCatalystsByYear(selected_year)
-        fig = px.bar(catalysts_by_year_avg, x='catalyst', y='fire_avg_size', color="fire_avg_size")
-        barChartStyling(fig, "Avg Fire Catalysts by County")
+        fig = px.bar(catalysts_by_year_avg, x='catalyst', y='fire_avg_size', title = "Average Fire Catalysts by County, <b>{0}</b>".format(selected_year))
+        barChartStyling(fig, "Number of Fires", "Fire Catalyst")
         
     elif chart_dropdown == "show_fire_over_time_single_year_C":
         fires_over_time_C = getFireOverTimeByYear(selected_year)
         fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
-        fig = px.scatter(fires_over_time_C, x='Time', y='fire_size', color="fire_size")
+        fig = px.scatter(fires_over_time_C, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", range_color=[0,100], title = "Fire Size Over Time (Class A-C)")
+        scatterPlotStyling(fig, "Fire Size (Acres)", "")
         
     elif chart_dropdown == "show_fire_over_time_single_year_D":
         fires_over_time_D = getFireOverTimeByYear(selected_year)
         fires_over_time_D = fires_over_time_D[fires_over_time_D['fire_size'] >= 100]
-        fig = px.scatter(fires_over_time_D, x='Time', y='fire_size', color="fire_size")
+        fig = px.scatter(fires_over_time_D, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", title = "Fire Size Over Time (Class D-G)")
+        scatterPlotStyling(fig, "Fire Size (Acres)", "")
         
     return fig
 
