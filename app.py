@@ -155,7 +155,7 @@ app.layout = html.Div(
     ],
 )
 
-
+#%%
 def getYearlyDataDict(years):
     yearlyData = {}
     for year in years:
@@ -188,7 +188,7 @@ yearlyData = getYearlyDataDict(years)
 cali = getCaliGeoJson()
 caliCounties = getCountyNames(cali)
 
-
+#%%
 # Not used
 def getFireCountsByYear(year):
     yearDF = yearlyData.get(year)
@@ -247,6 +247,7 @@ def getFireOverTimeByYear(year):
 #     acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
 #     return acresBurnt
 
+#%%
 def barChartStyling(fig, y_label, x_label):
     fig_layout = fig["layout"]
     fig_data = fig["data"]
@@ -290,7 +291,7 @@ def lineChartStyling(fig):
     fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
     fig_layout["xaxis"]["gridcolor"] = "#504240"
     fig_layout["yaxis"]["gridcolor"] = "#504240"
-
+#%%
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
@@ -319,7 +320,7 @@ def update_figure(selected_year):
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
 
-
+#%%
 @app.callback(
     Output("selected-data", "figure"),
     [
@@ -380,6 +381,7 @@ def update_chart(selected_year, chart_dropdown):
         fig_data[1]["marker"]["color"] = "#58cce3"
         
     return fig
-
+#%%
 if __name__ == '__main__':
+    server = app.server
     app.run_server(debug=True)
