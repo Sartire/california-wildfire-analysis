@@ -357,10 +357,13 @@ def update_chart(selected_year, chart_dropdown):
         
     elif chart_dropdown == "show_firesize_v_precip":
         fig = make_subplots(specs=[[{"secondary_y": True}]])
+        #subset to year
+        fd = daily[daily['date'].dt.year == selected_year]
+        
         # Add traces
-        fig.add_trace(go.Scatter(x=daily['date'], y=daily['b30'], name="Area burned in past 30 days"),secondary_y=False)
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd['b30'], name="Area burned in past 30 days"),secondary_y=False)
 
-        fig.add_trace(go.Scatter(x=daily['date'], y=daily['p30'], name="Precipiation in past 30 days"),secondary_y=True)
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd['p30']/10, name="Precipiation in past 30 days"),secondary_y=True)
         # Add figure title
         fig.update_layout(title_text="Fire Size and Precipitation")
 
@@ -369,8 +372,12 @@ def update_chart(selected_year, chart_dropdown):
 
         # Set y-axes titles
         fig.update_yaxes(title_text="Acres", secondary_y=False)
-        fig.update_yaxes(title_text="Tenths of Inches ", secondary_y=True)
+        fig.update_yaxes(title_text="Inches", secondary_y=True)
         lineChartStyling(fig)
+        # set colors
+        fig_data = fig["data"]
+        fig_data[0]["marker"]["color"] = "#fd6e6e"
+        fig_data[1]["marker"]["color"] = "#58cce3"
         
     return fig
 
