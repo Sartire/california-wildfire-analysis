@@ -7,6 +7,8 @@ import plotly.graph_objs as go
 import plotly.express as px
 from urllib.request import urlopen
 import json
+from plotly.subplots import make_subplots
+
 
 app = dash.Dash()
 
@@ -16,9 +18,39 @@ app = dash.Dash()
 
 fires = pd.read_csv('./data/fires_cleaned/final_fires_cleaned.csv')
 fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
-fires = fires[fires['FIRE_YEAR'] >= 2003]
+
+
+fires = fires[fires['FIRE_YEAR'] >= 2002]
 years = fires['FIRE_YEAR'].unique()
 
+#%%
+precip = pd.read_csv('./data/precip_agg_series.csv')
+precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
+precip = precip[precip['year']>=2002]
+precip['date'] = pd.to_datetime(list(map(str, precip['date'])) )
+years = fires['FIRE_YEAR'].unique()
+
+# overall rainfall
+pdaily = precip.groupby('date').sum()['station_sum']  
+
+pdaily = pd.DataFrame(pdaily)
+# rainfall in the last 30 days
+pdaily['p30'] = pdaily['station_sum'] .rolling(30).sum()
+
+
+pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= 2003]
+
+fires['date'] = pd.to_datetime(list(map(str, fires['DATETIME'])))
+fdaily =pd.DataFrame(fires.groupby('date').sum()['FIRE_SIZE'])
+
+fdaily['b30'] = fdaily['FIRE_SIZE'].rolling(30).sum()
+
+fdaily = fdaily.reset_index(0)[fdaily.reset_index()['date'].dt.year >= 2003]
+
+daily = pd.merge(fdaily, pdaily, on = 'date')
+
+fires = fires[fires['FIRE_YEAR'] >= 2003]
+#%%
 description = "Between 2003 and 2015, there were an estimated 189,000 wildfires across the state of California. This map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires."
 
 app.layout = html.Div(
@@ -95,6 +127,10 @@ app.layout = html.Div(
                                 {
                                     "label": "Fire size over time (single year, Class D-G)",
                                     "value": "show_fire_over_time_single_year_D",
+                                },
+                                {
+                                    "label": "Fire Size and Precipitation",
+                                    "value": "show_firesize_v_precip",
                                 },
                             ],
                             value="show_fire_catalysts_single_year",
@@ -243,6 +279,18 @@ def scatterPlotStyling(fig, y_label, x_label):
     fig_layout["xaxis"]["gridcolor"] = "#504240"
     fig_layout["yaxis"]["gridcolor"] = "#504240"
 
+def lineChartStyling(fig):
+    fig_layout = fig["layout"]
+    fig_data = fig["data"]
+    fig_layout["paper_bgcolor"] = "#242424"
+    fig_layout["plot_bgcolor"] = "#242424"
+    fig_layout["font"]["color"] = "#fd6e6e"
+    fig_layout["title"]["font"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["gridcolor"] = "#504240"
+    fig_layout["yaxis"]["gridcolor"] = "#504240"
+
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
@@ -306,6 +354,23 @@ def update_chart(selected_year, chart_dropdown):
         fires_over_time_D = fires_over_time_D[fires_over_time_D['fire_size'] >= 100]
         fig = px.scatter(fires_over_time_D, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", title = "Fire Size Over Time (Class D-G)")
         scatterPlotStyling(fig, "Fire Size (Acres)", "")
+        
+    elif chart_dropdown == "show_firesize_v_precip":
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig.add_trace(go.Scatter(x=daily['date'], y=daily['b30'], name="Area burned in past 30 days"),secondary_y=False)
+
+        fig.add_trace(go.Scatter(x=daily['date'], y=daily['p30'], name="Precipiation in past 30 days"),secondary_y=True)
+        # Add figure title
+        fig.update_layout(title_text="Fire Size and Precipitation")
+
+        # Set x-axis title
+        fig.update_xaxes(title_text="Date")
+
+        # Set y-axes titles
+        fig.update_yaxes(title_text="Acres", secondary_y=False)
+        fig.update_yaxes(title_text="Tenths of Inches ", secondary_y=True)
+        lineChartStyling(fig)
         
     return fig
 
