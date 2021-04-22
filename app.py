@@ -10,7 +10,7 @@ import json
 from plotly.subplots import make_subplots
 
 
-app = dash.Dash()
+app = dash.Dash(__name__)
 server = app.server
 # Not needed when using the custom Mapbox basemap
 #mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
