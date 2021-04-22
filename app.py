@@ -7,7 +7,6 @@ import plotly.graph_objs as go
 import plotly.express as px
 from urllib.request import urlopen
 import json
-import plotly
 from plotly.subplots import make_subplots
 
 
@@ -280,6 +279,18 @@ def scatterPlotStyling(fig, y_label, x_label):
     fig_layout["xaxis"]["gridcolor"] = "#504240"
     fig_layout["yaxis"]["gridcolor"] = "#504240"
 
+def lineChartStyling(fig):
+    fig_layout = fig["layout"]
+    fig_data = fig["data"]
+    fig_layout["paper_bgcolor"] = "#242424"
+    fig_layout["plot_bgcolor"] = "#242424"
+    fig_layout["font"]["color"] = "#fd6e6e"
+    fig_layout["title"]["font"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
+    fig_layout["xaxis"]["gridcolor"] = "#504240"
+    fig_layout["yaxis"]["gridcolor"] = "#504240"
+
 @app.callback(
     Output('cali-wildfires', 'figure'),
     Input('year-slider', 'value'))
@@ -347,18 +358,19 @@ def update_chart(selected_year, chart_dropdown):
     elif chart_dropdown == "show_firesize_v_precip":
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         # Add traces
-        fig.add_trace(go.Scatter(x=daily['date'], y=daily['b30'], name=""),secondary_y=False)
+        fig.add_trace(go.Scatter(x=daily['date'], y=daily['b30'], name="Area burned in past 30 days"),secondary_y=False)
 
-        fig.add_trace(go.Scatter(x=daily['date'], y=daily['p30'], name="yaxis2 data"),secondary_y=True)
+        fig.add_trace(go.Scatter(x=daily['date'], y=daily['p30'], name="Precipiation in past 30 days"),secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Double Y Axis Example")
+        fig.update_layout(title_text="Fire Size and Precipitation")
 
         # Set x-axis title
-        fig.update_xaxes(title_text="xaxis title")
+        fig.update_xaxes(title_text="Date")
 
         # Set y-axes titles
-        fig.update_yaxes(title_text="<b>primary</b> yaxis title", secondary_y=False)
-        fig.update_yaxes(title_text="<b>secondary</b> yaxis title", secondary_y=True)
+        fig.update_yaxes(title_text="Acres", secondary_y=False)
+        fig.update_yaxes(title_text="Tenths of Inches ", secondary_y=True)
+        lineChartStyling(fig)
         
     return fig
 
