@@ -11,7 +11,7 @@ from plotly.subplots import make_subplots
 
 
 app = dash.Dash()
-
+server = app.server
 # Not needed when using the custom Mapbox basemap
 #mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
 #mapbox_style = "mapbox://styles/plotlymapbox/cjvprkf3t1kns1cqjxuxmwixz"
@@ -383,5 +383,4 @@ def update_chart(selected_year, chart_dropdown):
     return fig
 #%%
 if __name__ == '__main__':
-    server = app.server
     app.run_server(debug=True)
