@@ -2,9 +2,6 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import plotly.graph_objs as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 from Collection_Aggregation import FirePrecipDataCollection, CaliforniaYearlyCounty, FireAggregations, MapCreator, ChartCreator
 
 app = dash.Dash(__name__)
@@ -144,7 +141,6 @@ def update_figure(selected_year):
     filtered_fires_by_fips = FireAggregator.getFireCountsByYear(selected_year)
     fig = Visualizer.MakeWildfireMap(cali, filtered_fires_by_fips)
     return fig
-
 
 @app.callback(
     Output("selected-data", "figure"),
