@@ -49,7 +49,7 @@ def mergeFirePrecipDataDaily(precipData, fireData, year):
 
 daily = mergeFirePrecipDataDaily(precip, fires, startYear)
 
-description = "Between 2003 and 2015, there were an estimated 189,000 wildfires across the state of California. This map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires."
+description = "Between " + str(startYear) + " and 2015, there were an estimated 189,000 wildfires across the state of California. This map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires."
 
 app.layout = html.Div(
     id="root",
@@ -58,7 +58,7 @@ app.layout = html.Div(
             id="header",
             children=[
                 html.Img(id="logo", src=app.get_asset_url("uva-sds-white.png")),
-                html.H4(children="Visualizing California Wildfires (2003-2015)"),
+                html.H4(children="Visualizing California Wildfires ("+str(startYear)+"-2015)"),
                 html.P(
                     id="description",
                     children=description,
@@ -92,7 +92,7 @@ app.layout = html.Div(
                             id="cali-graph",
                             children=[
                                 html.P(
-                                    "Chloropleth map of total fire counts by year, split by county",
+                                    "Chloropleth map of total fire counts in " + str(startYear) + ", split by county",
                                     id="graph-title",
                                 ),
                                 dcc.Graph(id='cali-wildfires'),
