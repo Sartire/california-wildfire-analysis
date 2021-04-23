@@ -364,7 +364,10 @@ def update_chart(selected_year, chart_dropdown):
 
         fig.add_trace(go.Scatter(x=fd['date'], y=fd['p30']/10, name="Precipiation in past 30 days"),secondary_y=True)
         # Add figure title
-        fig.update_layout(title_text="Fire Size and Precipitation")
+        if selected_year > 2013:
+            fig.update_layout(title_text="No Data")
+        else:
+            fig.update_layout(title_text="Fire Size and Precipitation")
 
         # Set x-axis title
         fig.update_xaxes(title_text="Date")
