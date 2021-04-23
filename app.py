@@ -12,45 +12,43 @@ from plotly.subplots import make_subplots
 
 app = dash.Dash(__name__)
 server = app.server
-# Not needed when using the custom Mapbox basemap
-#mapbox_access_token = "pk.eyJ1IjoicGxvdGx5bWFwYm94IiwiYSI6ImNrOWJqb2F4djBnMjEzbG50amg0dnJieG4ifQ.Zme1-Uzoi75IaFbieBDl3A"
-#mapbox_style = "mapbox://styles/plotlymapbox/cjvprkf3t1kns1cqjxuxmwixz"
 
-fires = pd.read_csv('./data/fires_cleaned/final_fires_cleaned.csv')
-fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
+FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
+PRECIP_PATH = './data/precip_agg_series.csv'
+startYear = 2003
 
+def getFiresData(FIREPATH, year):
+    fires = pd.read_csv(FIREPATH)
+    fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))        # padding the fips code with a 0 to make it 5 digits - needed for geographic mapping
+    fires = fires[fires['FIRE_YEAR'] >= year]                                           # reducing years in the map due to latency issues
+    years = fires['FIRE_YEAR'].unique()                                                 # array of all the years to use in splitting by year
+    return fires, years
 
-fires = fires[fires['FIRE_YEAR'] >= 2002]
-years = fires['FIRE_YEAR'].unique()
+fires, years = getFiresData(FIREPATH, startYear)
 
-#%%
-precip = pd.read_csv('./data/precip_agg_series.csv')
-precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))
-precip = precip[precip['year']>=2002]
-precip['date'] = pd.to_datetime(list(map(str, precip['date'])) )
-years = fires['FIRE_YEAR'].unique()
+def getPrecipData(PRECIP_PATH, year):
+    precip = pd.read_csv(PRECIP_PATH)                                                   # precipitation data
+    precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))      # padding fips with a 0 for same reason as above
+    precip = precip[precip['year']>=year]                                               # reducing year for same reason as above
+    precip['date'] = pd.to_datetime(list(map(str, precip['date'])))                     # converting precip date to datetime object
+    return precip
 
-# overall rainfall
-pdaily = precip.groupby('date').sum()['station_sum']  
+precip = getPrecipData(PRECIP_PATH, startYear)
 
-pdaily = pd.DataFrame(pdaily)
-# rainfall in the last 30 days
-pdaily['p30'] = pdaily['station_sum'] .rolling(30).sum()
+def mergeFirePrecipDataDaily(precipData, fireData, year):
+    pdaily = precipData.groupby('date').sum()['station_sum']                            # overall rainfall
+    pdaily = pd.DataFrame(pdaily)                                                       # overall rainfall df
+    pdaily['p30'] = pdaily['station_sum'].rolling(30).sum()                             # rainfall in the last 30 days
+    pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= year]
+    fireData['date'] = pd.to_datetime(list(map(str, fireData['DATETIME'])))
+    fdaily =pd.DataFrame(fireData.groupby('date').sum()['FIRE_SIZE'])
+    fdaily['b30'] = fdaily['FIRE_SIZE'].rolling(30).sum()
+    fdaily = fdaily.reset_index(0)[fdaily.reset_index()['date'].dt.year >= year]
+    daily = pd.merge(fdaily, pdaily, on = 'date')
+    return daily
 
+daily = mergeFirePrecipDataDaily(precip, fires, startYear)
 
-pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= 2003]
-
-fires['date'] = pd.to_datetime(list(map(str, fires['DATETIME'])))
-fdaily =pd.DataFrame(fires.groupby('date').sum()['FIRE_SIZE'])
-
-fdaily['b30'] = fdaily['FIRE_SIZE'].rolling(30).sum()
-
-fdaily = fdaily.reset_index(0)[fdaily.reset_index()['date'].dt.year >= 2003]
-
-daily = pd.merge(fdaily, pdaily, on = 'date')
-
-fires = fires[fires['FIRE_YEAR'] >= 2003]
-#%%
 description = "Between 2003 and 2015, there were an estimated 189,000 wildfires across the state of California. This map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires."
 
 app.layout = html.Div(
