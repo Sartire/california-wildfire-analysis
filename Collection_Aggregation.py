@@ -6,11 +6,13 @@ Created on Fri Apr 23 14:50:32 2021
 @author: Timothy Tyree
 """
 import pandas as pd
+import numpy as np
 from urllib.request import urlopen
 import json
 import plotly.graph_objs as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import plotly.figure_factory as ff
 
 class FirePrecipDataCollection:
 
@@ -202,6 +204,12 @@ class ChartCreator(FireAggregations):
             fig_data = fig["data"]
             fig_data[0]["marker"]["color"] = "#fd6e6e"
             fig_data[1]["marker"]["color"] = "#58cce3"
+        elif t == "H":
+            fig_layout["xaxis"]["title"] = xLabel
+            fig_data = fig["data"]
+            fig_data[0]["marker"]["color"] = "#fd6e6e"
+            fig_data[0]["marker"]["opacity"] = .8
+            fig_data[1]["marker"]["opacity"] = .8
         fig_layout["paper_bgcolor"] = "#242424"
         fig_layout["plot_bgcolor"] = "#242424"
         fig_layout["font"]["color"] = "#fd6e6e"
@@ -289,7 +297,7 @@ class ChartCreator(FireAggregations):
 #                                     y2_title = 'Number of Fires in last 30 days',
 #                                     y2_units = 'Count of Fires')
 # =============================================================================
-        
+
         elif self.dropdown == "show_avg_firesize_counts_w":
             fig = self.twoLinePlot(title = "Average Fire Size and Count",
                                     y1 = 'a7',
@@ -299,5 +307,14 @@ class ChartCreator(FireAggregations):
                                     y2_title = 'Number of Fires in last 7 days',
                                     y2_units = 'Count of Fires')
 
+        elif self.dropdown == 'show_firesize_hist':
+            allsize = [self.yearlyData.get(x)['FIRE_SIZE'] for x in self.yearlyData]
+            allsize = pd.concat(allsize)
+            yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
+
+            fig = ff.create_distplot([np.log(allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
+            #fig = ff.create_distplot([ yearsize],['In' + str(self.year)], )
+            fig.update_layout(title_text='Distribution of Fire Size')
+            self.ChartStyling(fig, t = 'H', xLabel = 'ln(Fire Size)')
 
         return fig

@@ -134,6 +134,10 @@ app.layout = html.Div(
                                     "label": "Average Fire Size (Weekly)",
                                     "value": "show_avg_firesize_counts_w",
                                 },
+                                {
+                                    "label": "Fire Size Distribution",
+                                    "value": "show_firesize_hist",
+                                },
                             ],
                             value="show_fire_catalysts_single_year",
                             id="chart-dropdown",
