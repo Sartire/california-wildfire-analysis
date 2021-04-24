@@ -3,3 +3,12 @@ venv
 *.pyc
 .DS_Store
 .env
+*.sqlite
+Code/final_fires_cleaned.csv
+Code/tl_2020_06_bg/tl_2020_06_bg.cpg
+Code/tl_2020_06_bg/tl_2020_06_bg.dbf
+Code/tl_2020_06_bg/tl_2020_06_bg.prj
+Code/tl_2020_06_bg/tl_2020_06_bg.shp
+Code/tl_2020_06_bg/tl_2020_06_bg.shp.ea.iso.xml
+Code/tl_2020_06_bg/tl_2020_06_bg.shp.iso.xml
+Code/tl_2020_06_bg/tl_2020_06_bg.shx
