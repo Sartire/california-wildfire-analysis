@@ -313,13 +313,15 @@ class ChartCreator(FireAggregations):
                                     y2_title = 'Number of Fires in last 7 days',
                                     y2_units = 'Count of Fires')
 
-        elif self.dropdown == 'show_firesize_hist':
-           
-            yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
-
-            #fig = ff.create_distplot([np.log(self.allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
-            fig = ff.create_distplot([ np.log(yearsize)],['In ' + str(self.year)],bin_size=1, show_hist = False, show_rug = False)
-            fig.update_layout(title_text='Distribution of Fire Size')
-            self.ChartStyling(fig, t = 'H', xLabel = 'ln(Fire Size)')
+# =============================================================================
+#         elif self.dropdown == 'show_firesize_hist':
+#            
+#             yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
+# 
+#             #fig = ff.create_distplot([np.log(self.allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
+#             fig = ff.create_distplot([ np.log(yearsize)],['In ' + str(self.year)],bin_size=1, show_hist = False, show_rug = False)
+#             fig.update_layout(title_text='Distribution of Fire Size')
+#             self.ChartStyling(fig, t = 'H', xLabel = 'ln(Fire Size)')
+# =============================================================================
 
         return fig
