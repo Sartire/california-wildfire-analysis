@@ -40,7 +40,7 @@ class FirePrecipDataCollection:
         fire, years, fireData = self.getFiresData()                                       # get previous year for rolling time series
         precipData = self.getPrecipData()
         # make time series for precipitation
-        pdaily = precipData.groupby('date').sum()['station_sum']                            # overall rainfall
+        pdaily = precipData.groupby('date').sum()['station_sum']/10                            # overall rainfall in inches
         pdaily = pd.DataFrame(pdaily)                                                       # overall rainfall df
         pdaily['p30'] = pdaily['station_sum'].rolling(30).sum()                             # rainfall in the last 30 days
         pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= self.year]        # reset date from index to column and filter rows to desired year
@@ -197,7 +197,7 @@ class ChartCreator(FireAggregations):
         elif t == "S":
             fig_layout["yaxis"]["title"] = "Fire Size (Acres)"
             fig_layout["xaxis"]["title"] = ""
-        elif t == "L":
+        elif t == "L2":
             fig_data = fig["data"]
             fig_data[0]["marker"]["color"] = "#fd6e6e"
             fig_data[1]["marker"]["color"] = "#58cce3"
@@ -225,32 +225,24 @@ class ChartCreator(FireAggregations):
         self.ChartStyling(fig, t="S")
         return fig
 
-    def LinePlot(self, data):
+    
+    def twoLinePlot(self, title, y1, y2, y1_title, y2_title, y1_units, y2_units):
         fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fd = data[data['date'].dt.year == self.year]
-        fig.add_trace(go.Scatter(x=fd['date'], y=fd['b30'], name="Area burned in past 30 days"),secondary_y=False)
-        fig.add_trace(go.Scatter(x=fd['date'], y=fd['p30']/10, name="Area burned in past 30 days"),secondary_y=True)
-
-        if self.year > 2013:
-            fig.update_layout(title_text="No Data",
-                                legend = dict(
-                                    orientation = "h",
-                                    x=0,
-                                    y=1.1
-                                ),)
-        else:
-            fig.update_layout(title_text="Fire Size and Precipitation",
-                                legend = dict(
-                                    orientation = "h",
-                                    x=0,
-                                    y=1.1
-                                ),)
+        fd = self.daily[self.daily['date'].dt.year == self.year]
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd[y1], name=y1_title),secondary_y=False)
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd[y2], name=y2_title),secondary_y=True)
+        fig.update_layout(title_text=title,
+                            legend = dict(
+                            orientation = "h",
+                            x=0,
+                            y=1.1
+                            ),)
         fig.update_xaxes(title_text="Date")
-        fig.update_yaxes(title_text="Acres", secondary_y=False)
-        fig.update_yaxes(title_text="Inches", secondary_y=True)
-        self.ChartStyling(fig, t="L")
+        fig.update_yaxes(title_text=y1_units, secondary_y=False)
+        fig.update_yaxes(title_text=y2_units, secondary_y=True)
+        self.ChartStyling(fig, t="L2")
         return fig
-
+    
     def DetermineWhichPlot(self):
 
         if self.dropdown == "show_fire_catalysts_single_year":
@@ -276,6 +268,15 @@ class ChartCreator(FireAggregations):
             fig = self.ScatterPlot(fires_over_time_D, flag="N")
 
         elif self.dropdown == "show_firesize_v_precip":
-            fig = self.LinePlot(self.daily)
+            fig = self.twoLinePlot(title = "Fire Size and Precipitation", 
+                                    y1 = 'b30', 
+                                    y1_title="Area burned in last 30 days",
+                                    y1_units = "Acres",
+                                    y2 = 'p30',
+                                    y2_title = 'Precipitation in last 30 days',
+                                    y2_units = 'Inches')
+            if self.year > 2013:
+                fig.update_layout(title_text="No Data")
+      
 
         return fig
