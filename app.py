@@ -23,8 +23,6 @@ caliCounties = CountyDataCollector.getCountyNames(cali)
 
 FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
 
-
-
 description = (
     "Between " + str(startYear) + " and 2015, there were an estimated 189,000"
     " wildfires across the state of California. This map explores the correlations"

@@ -22,7 +22,7 @@ class FirePrecipDataCollection:
     def getFiresData(self):
         fires = pd.read_csv(self.firePath)
         fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))        # padding the fips code with a 0 to make it 5 digits - needed for geographic mapping
-        fires = fires[fires['FIRE_YEAR'] >= self.year]                                           # reducing years in the map due to latency issues
+        fires = fires[fires['FIRE_YEAR'] >= self.year]                                      # reducing years in the map due to latency issues
         years = fires['FIRE_YEAR'].unique()                                                 # array of all the years to use in splitting by year
         return fires, years
     
@@ -174,17 +174,23 @@ class ChartCreator(FireAggregations):
         self.year = year
         self.dropdown = dropdown
         
-    def BarChart(self, data, xVar, yVar, title, xLabel, yLabel):
-        title = title + ", <b>{0}</b>".format(self.year)
-        fig = px.bar(data, x=xVar, y=yVar, title=title)
+    def ChartStyling(self, fig, t="B", yLabel=None, xLabel=None):
         fig_layout = fig["layout"]
-        fig_data = fig["data"]
-        fig_layout["yaxis"]["title"] = yLabel
-        fig_layout["xaxis"]["title"] = xLabel
-        fig_data[0]["marker"]["color"] = "#fd6e6e"
-        fig_data[0]["marker"]["opacity"] = 1
-        fig_data[0]["marker"]["line"]["width"] = 0
-        fig_data[0]["textposition"] = "outside"
+        if t == "B":
+            fig_data = fig["data"]
+            fig_layout["yaxis"]["title"] = yLabel
+            fig_layout["xaxis"]["title"] = xLabel
+            fig_data[0]["marker"]["color"] = "#fd6e6e"
+            fig_data[0]["marker"]["opacity"] = 1
+            fig_data[0]["marker"]["line"]["width"] = 0
+            fig_data[0]["textposition"] = "outside"
+        elif t == "S":
+            fig_layout["yaxis"]["title"] = "Fire Size (Acres)"
+            fig_layout["xaxis"]["title"] = ""
+        elif t == "L":
+            fig_data = fig["data"]
+            fig_data[0]["marker"]["color"] = "#fd6e6e"
+            fig_data[1]["marker"]["color"] = "#58cce3"
         fig_layout["paper_bgcolor"] = "#242424"
         fig_layout["plot_bgcolor"] = "#242424"
         fig_layout["font"]["color"] = "#fd6e6e"
@@ -193,6 +199,11 @@ class ChartCreator(FireAggregations):
         fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
         fig_layout["xaxis"]["gridcolor"] = "#504240"
         fig_layout["yaxis"]["gridcolor"] = "#504240"
+        
+    def BarChart(self, data, xVar, yVar, title, xLabel, yLabel):
+        title = title + ", <b>{0}</b>".format(self.year)
+        fig = px.bar(data, x=xVar, y=yVar, title=title)
+        self.ChartStyling(fig, yLabel=yLabel, xLabel=xLabel)
         return fig
     
     
@@ -201,18 +212,7 @@ class ChartCreator(FireAggregations):
             fig = px.scatter(data, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", range_color=[0,100], title = "Fire Size Over Time (Class A-C)")
         else:
             fig = px.scatter(data, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", range_color=[0,5000], title = "Fire Size Over Time (Class D-G)")
-        fig_layout = fig["layout"]
-        fig_data = fig["data"]
-        fig_layout["yaxis"]["title"] = "Fire Size (Acres)"
-        fig_layout["xaxis"]["title"] = ""
-        fig_layout["paper_bgcolor"] = "#242424"
-        fig_layout["plot_bgcolor"] = "#242424"
-        fig_layout["font"]["color"] = "#fd6e6e"
-        fig_layout["title"]["font"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["gridcolor"] = "#504240"
-        fig_layout["yaxis"]["gridcolor"] = "#504240"
+        self.ChartStyling(fig, t="S")
         return fig
         
     def LinePlot(self, data):
@@ -229,19 +229,7 @@ class ChartCreator(FireAggregations):
         fig.update_xaxes(title_text="Date")
         fig.update_yaxes(title_text="Acres", secondary_y=False)
         fig.update_yaxes(title_text="Inches", secondary_y=True)
-        fig_layout = fig["layout"]
-        fig_data = fig["data"]
-        fig_layout["paper_bgcolor"] = "#242424"
-        fig_layout["plot_bgcolor"] = "#242424"
-        fig_layout["font"]["color"] = "#fd6e6e"
-        fig_layout["title"]["font"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["yaxis"]["tickfont"]["color"] = "#fd6e6e"
-        fig_layout["xaxis"]["gridcolor"] = "#504240"
-        fig_layout["yaxis"]["gridcolor"] = "#504240"
-        fig_data = fig["data"]
-        fig_data[0]["marker"]["color"] = "#fd6e6e"
-        fig_data[1]["marker"]["color"] = "#58cce3"
+        self.ChartStyling(fig, t="L")
         return fig
         
     def DetermineWhichPlot(self):
