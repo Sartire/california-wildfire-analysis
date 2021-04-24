@@ -7,20 +7,36 @@ from Collection_Aggregation import FirePrecipDataCollection, CaliforniaYearlyCou
 app = dash.Dash(__name__)
 server = app.server
 
+'''
+Declaring the paths and start year
+If you change start year it globally changes the amount of data seen in the plots
+'''
 FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
 PRECIP_PATH = './data/precip_agg_series.csv'
 startYear = 2003
 
+
+'''
+Creating a data collector object and obtaining the filtered fires, years,
+precipitation, and daily precipitation datasets
+'''
 DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
 fires, years = DataCollector.getFiresData()
 precip = DataCollector.getPrecipData()
 daily = DataCollector.mergeFirePrecipDataDaily(precip, fires)
 
+'''
+Creating a county data collector object and obtaining the yearly data by county,
+and the cali geojson objects by year
+'''
 CountyDataCollector = CaliforniaYearlyCounty(startYear, FIREPATH, PRECIP_PATH,fires, years, precip, daily)
 yearlyData = CountyDataCollector.getYearlyDataDict()
 cali = CountyDataCollector.getCaliGeoJson()
 caliCounties = CountyDataCollector.getCountyNames(cali)
 
+'''
+Creating a fire aggregator object that will be used to aggregate information for the different charts
+'''
 FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
 
 description = (
