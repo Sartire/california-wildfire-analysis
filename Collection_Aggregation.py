@@ -148,7 +148,12 @@ class FireAggregations:
         fires.reset_index(inplace=True)
         fires = fires.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
         return fires
-
+    # For the density plots
+    def getAllFireSizes(self):
+        allsize = [self.yearlyData.get(x)['FIRE_SIZE'] for x in self.yearlyData]
+        allsize = pd.concat(allsize)
+        return allsize
+    
 class MapCreator:
 
     def __init__(self, year):
@@ -182,10 +187,11 @@ class MapCreator:
 
 class ChartCreator(FireAggregations):
 
-    def __init__(self, yearlyData, caliCounties, daily, year, dropdown):
+    def __init__(self, yearlyData, caliCounties, daily, allsize, year, dropdown):
         FireAggregations.__init__(self, yearlyData, caliCounties, daily)
         self.year = year
         self.dropdown = dropdown
+        self.allsize = allsize
 
     def ChartStyling(self, fig, t="B", yLabel=None, xLabel=None):
         fig_layout = fig["layout"]
@@ -308,11 +314,10 @@ class ChartCreator(FireAggregations):
                                     y2_units = 'Count of Fires')
 
         elif self.dropdown == 'show_firesize_hist':
-            allsize = [self.yearlyData.get(x)['FIRE_SIZE'] for x in self.yearlyData]
-            allsize = pd.concat(allsize)
+           
             yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
 
-            fig = ff.create_distplot([np.log(allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
+            fig = ff.create_distplot([np.log(self.allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
             #fig = ff.create_distplot([ yearsize],['In' + str(self.year)], )
             fig.update_layout(title_text='Distribution of Fire Size')
             self.ChartStyling(fig, t = 'H', xLabel = 'ln(Fire Size)')

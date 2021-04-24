@@ -34,11 +34,12 @@ yearlyData = CountyDataCollector.getYearlyDataDict()
 cali = CountyDataCollector.getCaliGeoJson()
 caliCounties = CountyDataCollector.getCountyNames(cali)
 
+
 '''
 Creating a fire aggregator object that will be used to aggregate information for the different charts
 '''
 FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
-
+allsize = FireAggregator.getAllFireSizes()
 description = (
     "Between " + str(startYear) + " and 2015, there were an estimated 189,000"
     " wildfires across the state of California. This map explores the correlations"
@@ -178,7 +179,7 @@ def update_figure(selected_year):
     ],
 )
 def update_chart(selected_year, chart_dropdown):
-    ChartVisualizer = ChartCreator(yearlyData, caliCounties, daily, selected_year, chart_dropdown)
+    ChartVisualizer = ChartCreator(yearlyData, caliCounties, daily, allsize, selected_year, chart_dropdown)
     fig = ChartVisualizer.DetermineWhichPlot()
     return fig
 
