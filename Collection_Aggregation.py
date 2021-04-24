@@ -6,6 +6,7 @@ Created on Fri Apr 23 14:50:32 2021
 @author: Timothy Tyree
 """
 import pandas as pd
+import numpy as np
 from urllib.request import urlopen
 import json
 import plotly.graph_objs as go
@@ -289,17 +290,14 @@ class ChartCreator(FireAggregations):
                                     y2 = 'f30',
                                     y2_title = 'Number of Fires in last 30 days',
                                     y2_units = 'Count of Fires')
-<<<<<<< Updated upstream
-      
-=======
             
         elif self.dropdown == 'show_firesize_hist':
             allsize = [self.yearlyData.get(x)['FIRE_SIZE'] for x in self.yearlyData]
             allsize = pd.concat(allsize)    
             yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
             
-            fig = ff.create_distplot([allsize, yearsize],["2003-2015", 'In' + str(self.year)], bin_size=10000)
+            fig = ff.create_distplot([np.log(allsize),np.log(yearsize)],["2003-2015", 'In' + str(self.year)], bin_size=10)
             #fig = ff.create_distplot([ yearsize],['In' + str(self.year)], )
->>>>>>> Stashed changes
+
 
         return fig
