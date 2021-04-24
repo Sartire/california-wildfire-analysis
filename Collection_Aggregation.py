@@ -52,7 +52,9 @@ class FirePrecipDataCollection:
         fdaily['f30'] = fireData.groupby('date').count()['OBJECTID'].rolling(30).sum()
         fdaily['b7'] = fdaily['FIRE_SIZE'].rolling(7).sum()
         fdaily = fdaily.reset_index(0)[fdaily.reset_index()['date'].dt.year >= self.year]
-        daily = pd.merge(fdaily, pdaily, on = 'date')
+        daily = pd.merge(fdaily, pdaily, on = 'date', how = 'left')
+        daily['a7'] = daily['b7']/daily['f7']
+        daily['a30'] = daily['b30']/daily['f30']
         return daily
 
 class CaliforniaYearlyCounty(FirePrecipDataCollection):
@@ -276,7 +278,16 @@ class ChartCreator(FireAggregations):
                                     y2_title = 'Precipitation in last 30 days',
                                     y2_units = 'Inches')
             if self.year > 2013:
-                fig.update_layout(title_text="No Data")
+                fig.update_layout(title_text="No Precipitation Data")
+        
+        elif self.dropdown == "show_avg_firesize_counts":
+            fig = self.twoLinePlot(title = "Average Fire Size and Count", 
+                                    y1 = 'a30', 
+                                    y1_title="Average Area burned in last 30 days",
+                                    y1_units = "Acres per Fire",
+                                    y2 = 'f30',
+                                    y2_title = 'Number of Fires in last 30 days',
+                                    y2_units = 'Count of Fires')
       
 
         return fig

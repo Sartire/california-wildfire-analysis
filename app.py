@@ -108,6 +108,10 @@ app.layout = html.Div(
                                     "label": "Fire Size and Precipitation",
                                     "value": "show_firesize_v_precip",
                                 },
+                                {
+                                    "label": "Average Fire Size",
+                                    "value": "show_avg_firesize_counts",
+                                },
                             ],
                             value="show_fire_catalysts_single_year",
                             id="chart-dropdown",
