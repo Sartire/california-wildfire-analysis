@@ -22,25 +22,35 @@ class FirePrecipDataCollection:
     def getFiresData(self):
         fires = pd.read_csv(self.firePath)
         fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))        # padding the fips code with a 0 to make it 5 digits - needed for geographic mapping
-        fires = fires[fires['FIRE_YEAR'] >= self.year]                                           # reducing years in the map due to latency issues
-        years = fires['FIRE_YEAR'].unique()                                                 # array of all the years to use in splitting by year
-        return fires, years
+       
+        pfires = fires[fires['FIRE_YEAR'] >= 2002]                                                   # array of all the years to use in splitting by year
+        fires = fires[fires['FIRE_YEAR'] >= self.year]                                           # reducing years in the map due to latency issues                                                      
+        years = fires['FIRE_YEAR'].unique()
+        return fires, years, pfires
     
     def getPrecipData(self):
-        precip = pd.read_csv(self.precipPath)                                              # precipitation data
+       
+        precip = pd.read_csv(self.precipPath)                                               # precipitation data
         precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))      # padding fips with a 0 for same reason as above
-        precip = precip[precip['year']>=self.year]                                          # reducing year for same reason as above
+        #precip = precip[precip['year'] >= year]                                             # reducing year for same reason as above
         precip['date'] = pd.to_datetime(list(map(str, precip['date'])))                     # converting precip date to datetime object
         return precip
     
-    def mergeFirePrecipDataDaily(self, precipData, fireData):
+    def mergeFirePrecipDataDaily(self):
+        fire, years, fireData = self.getFiresData()                                       # get previous year for rolling time series
+        precipData = self.getPrecipData()
+        # make time series for precipitation
         pdaily = precipData.groupby('date').sum()['station_sum']                            # overall rainfall
         pdaily = pd.DataFrame(pdaily)                                                       # overall rainfall df
         pdaily['p30'] = pdaily['station_sum'].rolling(30).sum()                             # rainfall in the last 30 days
-        pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= self.year]
+        pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= self.year]        # reset date from index to column and filter rows to desired year
+
         fireData['date'] = pd.to_datetime(list(map(str, fireData['DATETIME'])))
-        fdaily =pd.DataFrame(fireData.groupby('date').sum()['FIRE_SIZE'])
+        fdaily =pd.DataFrame(fireData.groupby('date').sum()['FIRE_SIZE'])                   # same process for fire size
         fdaily['b30'] = fdaily['FIRE_SIZE'].rolling(30).sum()
+        fdaily['f7'] = fireData.groupby('date').count()['OBJECTID'].rolling(7).sum()
+        fdaily['f30'] = fireData.groupby('date').count()['OBJECTID'].rolling(30).sum()
+        fdaily['b7'] = fdaily['FIRE_SIZE'].rolling(7).sum()
         fdaily = fdaily.reset_index(0)[fdaily.reset_index()['date'].dt.year >= self.year]
         daily = pd.merge(fdaily, pdaily, on = 'date')
         return daily
@@ -220,7 +230,16 @@ class ChartCreator(FireAggregations):
         fd = data[data['date'].dt.year == self.year]
         fig.add_trace(go.Scatter(x=fd['date'], y=fd['b30'], name="Area burned in past 30 days"),secondary_y=False)
         fig.add_trace(go.Scatter(x=fd['date'], y=fd['p30']/10, name="Area burned in past 30 days"),secondary_y=True)
-        fig.update_layout(title_text="Fire Size and Precipitation",
+        
+        if self.year > 2013:
+            fig.update_layout(title_text="No Data",
+                                legend = dict(
+                                    orientation = "h",
+                                    x=0,
+                                    y=1.1
+                                ),)
+        else:
+            fig.update_layout(title_text="Fire Size and Precipitation",
                                 legend = dict(
                                     orientation = "h",
                                     x=0,

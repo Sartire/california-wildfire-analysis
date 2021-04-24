@@ -15,9 +15,9 @@ PRECIP_PATH = './data/precip_agg_series.csv'
 startYear = 2003
 
 DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
-fires, years = DataCollector.getFiresData()
+fires, years, pfires = DataCollector.getFiresData()
 precip = DataCollector.getPrecipData()
-daily = DataCollector.mergeFirePrecipDataDaily(precip, fires)
+daily = DataCollector.mergeFirePrecipDataDaily()
 
 CountyDataCollector = CaliforniaYearlyCounty(startYear, FIREPATH, PRECIP_PATH,fires, years, precip, daily)
 yearlyData = CountyDataCollector.getYearlyDataDict()
