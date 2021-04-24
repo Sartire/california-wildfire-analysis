@@ -205,6 +205,12 @@ class ChartCreator(FireAggregations):
             fig_data = fig["data"]
             fig_data[0]["marker"]["color"] = "#fd6e6e"
             fig_data[1]["marker"]["color"] = "#58cce3"
+        elif t == "H":
+            fig_layout["xaxis"]["title"] = xLabel
+            fig_data = fig["data"]
+            fig_data[0]["marker"]["color"] = "#fd6e6e"
+            fig_data[0]["marker"]["opacity"] = .8
+            fig_data[1]["marker"]["opacity"] = .8
         fig_layout["paper_bgcolor"] = "#242424"
         fig_layout["plot_bgcolor"] = "#242424"
         fig_layout["font"]["color"] = "#fd6e6e"
@@ -296,8 +302,9 @@ class ChartCreator(FireAggregations):
             allsize = pd.concat(allsize)    
             yearsize = self.yearlyData.get(self.year)['FIRE_SIZE']
             
-            fig = ff.create_distplot([np.log(allsize),np.log(yearsize)],["2003-2015", 'In' + str(self.year)], bin_size=10)
+            fig = ff.create_distplot([np.log(allsize),np.log(yearsize)],["2003-2015", 'In ' + str(self.year)], bin_size=10, show_hist = False, show_rug = False)
             #fig = ff.create_distplot([ yearsize],['In' + str(self.year)], )
-
+            fig.update_layout(title_text='Distribution of Fire Size')
+            self.ChartStyling(fig, t = 'H', xLabel = 'ln(Fire Size)')
 
         return fig
