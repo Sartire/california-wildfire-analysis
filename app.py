@@ -124,9 +124,15 @@ app.layout = html.Div(
                                     "label": "Fire Size and Precipitation",
                                     "value": "show_firesize_v_precip",
                                 },
+# =============================================================================
+#                                 {
+#                                     "label": "Average Fire Size",
+#                                     "value": "show_avg_firesize_counts",
+#                                 },
+# =============================================================================
                                 {
-                                    "label": "Average Fire Size",
-                                    "value": "show_avg_firesize_counts",
+                                    "label": "Average Fire Size (Weekly)",
+                                    "value": "show_avg_firesize_counts_w",
                                 },
                             ],
                             value="show_fire_catalysts_single_year",

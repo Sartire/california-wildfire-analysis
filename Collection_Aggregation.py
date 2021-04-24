@@ -279,13 +279,24 @@ class ChartCreator(FireAggregations):
             if self.year > 2013:
                 fig.update_layout(title_text="No Precipitation Data")
 
-        elif self.dropdown == "show_avg_firesize_counts":
+# =============================================================================
+#         elif self.dropdown == "show_avg_firesize_counts":
+#             fig = self.twoLinePlot(title = "Average Fire Size and Count",
+#                                     y1 = 'a30',
+#                                     y1_title="Average Area burned per fire in last 30 days",
+#                                     y1_units = "Acres per Fire",
+#                                     y2 = 'f30',
+#                                     y2_title = 'Number of Fires in last 30 days',
+#                                     y2_units = 'Count of Fires')
+# =============================================================================
+        
+        elif self.dropdown == "show_avg_firesize_counts_w":
             fig = self.twoLinePlot(title = "Average Fire Size and Count",
-                                    y1 = 'a30',
-                                    y1_title="Average Area burned in last 30 days",
+                                    y1 = 'a7',
+                                    y1_title="Average Area burned per fire in last 7 days",
                                     y1_units = "Acres per Fire",
-                                    y2 = 'f30',
-                                    y2_title = 'Number of Fires in last 30 days',
+                                    y2 = 'f7',
+                                    y2_title = 'Number of Fires in last 7 days',
                                     y2_units = 'Count of Fires')
 
 
