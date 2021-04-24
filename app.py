@@ -21,9 +21,9 @@ Creating a data collector object and obtaining the filtered fires, years,
 precipitation, and daily precipitation datasets
 '''
 DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
-fires, years = DataCollector.getFiresData()
+fires, years, pfires = DataCollector.getFiresData()
 precip = DataCollector.getPrecipData()
-daily = DataCollector.mergeFirePrecipDataDaily(precip, fires)
+daily = DataCollector.mergeFirePrecipDataDaily()
 
 '''
 Creating a county data collector object and obtaining the yearly data by county,
@@ -123,6 +123,10 @@ app.layout = html.Div(
                                 {
                                     "label": "Fire Size and Precipitation",
                                     "value": "show_firesize_v_precip",
+                                },
+                                {
+                                    "label": "Average Fire Size",
+                                    "value": "show_avg_firesize_counts",
                                 },
                             ],
                             value="show_fire_catalysts_single_year",
