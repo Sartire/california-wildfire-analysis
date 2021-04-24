@@ -27,7 +27,7 @@ class FirePrecipDataCollection:
         return fires, years
     
     def getPrecipData(self):
-        precip = pd.read_csv(self.precipPath)                                              # precipitation data
+        precip = pd.read_csv(self.precipPath)                                               # precipitation data
         precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))      # padding fips with a 0 for same reason as above
         precip = precip[precip['year']>=self.year]                                          # reducing year for same reason as above
         precip['date'] = pd.to_datetime(list(map(str, precip['date'])))                     # converting precip date to datetime object
@@ -135,7 +135,7 @@ class FireAggregations:
         fires.reset_index(inplace=True)
         fires = fires.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
         return fires
-            
+     
 class MapCreator:
     
     def __init__(self, year):
@@ -166,7 +166,7 @@ class MapCreator:
     
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
         return fig
-    
+ 
 class ChartCreator(FireAggregations):
     
     def __init__(self, yearlyData, caliCounties, daily, year, dropdown):
