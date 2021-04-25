@@ -28,7 +28,6 @@ class FirePrecipDataCollection:
 
     def getFiresData(self):
         fires = self.readInData(self.firePath)
-        #pfires = fires[fires['FIRE_YEAR'] >= self.year-1]                                   # array of all the years to use in splitting by year
         fires = fires[fires['FIRE_YEAR'] >= self.year]                                      # reducing years in the map due to latency issues
         years = fires['FIRE_YEAR'].unique()
         return fires, years#, pfires
