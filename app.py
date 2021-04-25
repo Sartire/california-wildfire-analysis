@@ -13,7 +13,7 @@ If you change start year it globally changes the amount of data seen in the plot
 '''
 FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
 PRECIP_PATH = './data/precip_agg_series.csv'
-startYear = 2003
+startYear = 1992
 
 
 '''
@@ -21,15 +21,14 @@ Creating a data collector object and obtaining the filtered fires, years,
 precipitation, and daily precipitation datasets
 '''
 DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
-fires, years, pfires = DataCollector.getFiresData()
-precip = DataCollector.getPrecipData()
+fires, years = DataCollector.getFiresData()
 daily = DataCollector.mergeFirePrecipDataDaily()
 
 '''
 Creating a county data collector object and obtaining the yearly data by county,
 and the cali geojson objects by year
 '''
-CountyDataCollector = CaliforniaYearlyCounty(startYear, FIREPATH, PRECIP_PATH,fires, years, precip, daily)
+CountyDataCollector = CaliforniaYearlyCounty(startYear,fires, years)
 yearlyData = CountyDataCollector.getYearlyDataDict()
 cali = CountyDataCollector.getCaliGeoJson()
 caliCounties = CountyDataCollector.getCountyNames(cali)
