@@ -25,26 +25,26 @@ class FirePrecipDataCollection:
         fires = pd.read_csv(self.firePath)
         fires['STCT_FIPS'] = fires['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))        # padding the fips code with a 0 to make it 5 digits - needed for geographic mapping
 
-        pfires = fires[fires['FIRE_YEAR'] >= 2002]                                                   # array of all the years to use in splitting by year
-        fires = fires[fires['FIRE_YEAR'] >= self.year]                                           # reducing years in the map due to latency issues
+        pfires = fires[fires['FIRE_YEAR'] >= 2002]                                          # array of all the years to use in splitting by year
+        fires = fires[fires['FIRE_YEAR'] >= self.year]                                      # reducing years in the map due to latency issues
         years = fires['FIRE_YEAR'].unique()
         return fires, years, pfires
 
     def getPrecipData(self):
         precip = pd.read_csv(self.precipPath)                                               # precipitation data
         precip['STCT_FIPS'] = precip['STCT_FIPS'].apply(lambda x: '{0:0>5}'.format(x))      # padding fips with a 0 for same reason as above
-        #precip = precip[precip['year'] >= year]                                             # reducing year for same reason as above
+        #precip = precip[precip['year'] >= year]                                            # reducing year for same reason as above
         precip['date'] = pd.to_datetime(list(map(str, precip['date'])))                     # converting precip date to datetime object
         return precip
 
     def mergeFirePrecipDataDaily(self):
-        fire, years, fireData = self.getFiresData()                                       # get previous year for rolling time series
+        fire, years, fireData = self.getFiresData()                                         # get previous year for rolling time series
         precipData = self.getPrecipData()
         # make time series for precipitation
-        pdaily = precipData.groupby('date').sum()['station_sum']/10                            # overall rainfall in inches
+        pdaily = precipData.groupby('date').sum()['station_sum']/10                         # overall rainfall in inches
         pdaily = pd.DataFrame(pdaily)                                                       # overall rainfall df
         pdaily['p30'] = pdaily['station_sum'].rolling(30).sum()                             # rainfall in the last 30 days
-        pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= self.year]        # reset date from index to column and filter rows to desired year
+        pdaily = pdaily.reset_index(0)[pdaily.reset_index()['date'].dt.year >= self.year]   # reset date from index to column and filter rows to desired year
 
         fireData['date'] = pd.to_datetime(list(map(str, fireData['DATETIME'])))
         fdaily =pd.DataFrame(fireData.groupby('date').sum()['FIRE_SIZE'])                   # same process for fire size
@@ -101,44 +101,41 @@ class FireAggregations:
         self.yearlyData = yearlyData
         self.caliCounties = caliCounties
         self.daily = daily
-
-    def getFireCountsByYear(self, year):
+    
+    # standard way to perform a number of different groupby operations to avoid repetitive code
+    def performGroupOperation(self, year, aggCol, groupCol, newAggCol, newGroupCol, Type=None, ascending=False):
         yearDF = self.yearlyData.get(year)
-        filtered_fips = yearDF['OBJECTID'].groupby(yearDF['STCT_FIPS']).count().sort_values()
-        filtered_fips = filtered_fips.to_frame()
-        filtered_fips.reset_index(inplace=True)
-        filtered_fips = filtered_fips.rename(columns={'OBJECTID': 'fire_count', 'STCT_FIPS':'fips'})
+        if Type == "Count":
+            groupedData = yearDF[aggCol].groupby(yearDF[groupCol]).count().sort_values(ascending=ascending)
+        elif Type == "Sum":
+            groupedData = yearDF[aggCol].groupby(yearDF[groupCol]).sum().sort_values(ascending=ascending)
+        elif Type == "Mean":
+            groupedData = yearDF.groupby(yearDF[groupCol])[aggCol].mean().sort_values(ascending=ascending)
+        groupedData = groupedData.to_frame()
+        groupedData.reset_index(inplace=True)
+        groupedData = groupedData.rename(columns={aggCol: newAggCol, groupCol: newGroupCol})
+        return groupedData
+                
+    def getFireCountsByYear(self, year):
+        filtered_fips = self.performGroupOperation(year, 'OBJECTID', 'STCT_FIPS', 'fire_count', 'fips', Type="Count", ascending=True)
         filtered_fips = filtered_fips.merge(self.caliCounties, on="fips")
         return filtered_fips
 
-
     # For "Histogram of fire catalysts count (single year)" graph aka "show_fire_catalysts_single_year"
     def getFireCatalystsByYear(self, year):
-        yearDF = self.yearlyData.get(year)
-        catalysts = yearDF['OBJECTID'].groupby(yearDF['STAT_CAUSE_DESCR']).count().sort_values(ascending=False)
-        catalysts = catalysts.to_frame()
-        catalysts.reset_index(inplace=True)
-        catalysts = catalysts.rename(columns={'OBJECTID': 'fire_count', 'STAT_CAUSE_DESCR':'catalyst'})
+        catalysts = self.performGroupOperation(year, 'OBJECTID', 'STAT_CAUSE_DESCR', 'fire_count', 'catalyst', Type="Count")
         return catalysts
 
     # For "Most destructive fires (single year)", aka "show_largest_fires_table_single_year"
     def getMostAcresBurntFipsByYear(self, year):
-        yearDF = self.yearlyData.get(year)
-        acresBurnt = yearDF['FIRE_SIZE'].groupby(yearDF['STCT_FIPS']).sum().sort_values(ascending=False)
-        acresBurnt = acresBurnt.to_frame()
-        acresBurnt.reset_index(inplace=True)
-        acresBurnt = acresBurnt.rename(columns={'FIRE_SIZE': 'total_acres_burnt', 'STCT_FIPS': 'fips'})
+        acresBurnt = self.performGroupOperation(year, 'FIRE_SIZE', 'STCT_FIPS', 'total_acres_burnt', 'fips', Type="Sum")
         acresBurnt = acresBurnt.merge(self.caliCounties, on="fips")
         acresBurnt = acresBurnt.sort_values(by='total_acres_burnt', ascending=False)[:10]
         return acresBurnt
 
     # For "Histogram of fire catalysts average (single year)" graph aka "show_fire_catalysts_avg_single_year"
     def getAvgFireCatalystsByYear(self, year):
-        yearDF = self.yearlyData.get(year)
-        catalysts = yearDF.groupby(yearDF['STAT_CAUSE_DESCR'])['FIRE_SIZE'].mean().sort_values(ascending=False)
-        catalysts = catalysts.to_frame()
-        catalysts.reset_index(inplace=True)
-        catalysts = catalysts.rename(columns={'FIRE_SIZE': 'fire_avg_size', 'STAT_CAUSE_DESCR': 'catalyst'})
+        catalysts = self.performGroupOperation(year, 'FIRE_SIZE', 'STAT_CAUSE_DESCR', 'fire_avg_size', 'catalyst', Type="Mean")
         return catalysts
 
     # For "Fire size over time (single year)" graph aka "show_fire_over_time_single_year",
@@ -266,11 +263,11 @@ class ChartCreator(FireAggregations):
 
         elif self.dropdown == "show_largest_fires_table_single_year":
             acres_burnt_by_year = self.getMostAcresBurntFipsByYear(self.year)
-            fig = self.BarChart(acres_burnt_by_year, 'county', 'total_acres_burnt', "Acreage Burnt by County,", "Acres Burnt", "County")
+            fig = self.BarChart(acres_burnt_by_year, 'county', 'total_acres_burnt', "Acreage Burnt by County", "Acres Burnt", "County")
 
         elif self.dropdown == "show_fire_catalysts_avg_single_year":
             catalysts_by_year_avg = self.getAvgFireCatalystsByYear(self.year)
-            fig = self.BarChart(catalysts_by_year_avg, 'catalyst', 'fire_avg_size', "Average Fire Catalysts by County,", "Number of Fires", "Fire Catalyst")
+            fig = self.BarChart(catalysts_by_year_avg, 'catalyst', 'fire_avg_size', "Average Fire Catalysts by County", "Number of Fires", "Fire Catalyst")
 
         elif self.dropdown == "show_fire_over_time_single_year_C":
             fires_over_time_C = self.getFireOverTimeByYear(self.year)
