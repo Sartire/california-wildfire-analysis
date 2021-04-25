@@ -2,7 +2,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from Collection_Aggregation import FirePrecipDataCollection, CaliforniaYearlyCounty, FireAggregations, MapCreator, ChartCreator
+from Code.Collection_Aggregation import FirePrecipDataCollection, CaliforniaYearlyCounty, FireAggregations, MapCreator, ChartCreator
 
 app = dash.Dash(__name__)
 server = app.server
@@ -11,7 +11,7 @@ server = app.server
 Declaring the paths and start year
 If you change start year it globally changes the amount of data seen in the plots
 '''
-FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
+FIREPATH = './data/final_fires_cleaned.csv'
 PRECIP_PATH = './data/precip_agg_series.csv'
 startYear = 2003
 
