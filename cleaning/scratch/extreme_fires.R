@@ -17,7 +17,8 @@ top_fires <- fires %>%
   mutate(cum_pct = cumsum(pct_area)) %>%
   filter(cum_pct < .90) %>%
   summarise(f90 = n(),
-            n_fires = year_fires[1])
+            n_fires = year_fires[1],
+            total_burn = total_area[1])
 
 
 
@@ -27,12 +28,12 @@ top_fires %>%
   geom_line() +
   geom_point()
 
-
-fires %>%
-  select(year = FIRE_YEAR, fsize = FIRE_SIZE, fid = OBJECTID) %>%
-  group_by(year) %>%
-  summarise(tb = sum(fsize)) %>%
-  ggplot(aes(x = year, y = tb))  +
+top_fires %>%
+  ggplot(aes(x = year, y = total_burn))  +
   ylim(0, NA) +
   geom_line() +
   geom_point()
+
+
+cor(top_fires$f90/top_fires$n_fires, top_fires$total_burn )
+
