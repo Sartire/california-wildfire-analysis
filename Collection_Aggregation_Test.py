@@ -14,10 +14,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
-
-    def test__init__(self):
-        self.assertIsNotNone(self.DataCollector)
-        
+    
     def test_getFiresData_fires(self):
         expected_fires = pd.DataFrame({'Unnamed: 0': {0: 0, 1: 1, 2: 2},
                                        'OBJECTID': {0: 1, 1: 1446, 2: 1793},
@@ -136,6 +133,7 @@ class FireAggregations_Test(unittest.TestCase):
         cali = CountyDataCollector.getCaliGeoJson()
         caliCounties = CountyDataCollector.getCountyNames(cali)
         cls.FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
+        cls.selected_year = 2003
 
     def test_performGroupOperation_count(self):
         expected_df = pd.DataFrame({'fips': {0: '06031', 1: '06041', 2: '06075'},
@@ -154,24 +152,59 @@ class FireAggregations_Test(unittest.TestCase):
                                     'fire_count': {0: 162902.49295774646, 1: 180576.44444444444, 2: 187794.0}})
         df = self.FireAggregator.performGroupOperation(2003, 'OBJECTID', 'STCT_FIPS', 'fire_count', 'fips', Type="Mean", ascending=True)
         pd.testing.assert_frame_equal(df.head(3), expected_df, check_dtype=True)
+
+    def test_performGroupOperation_shape(self):
+        df = self.FireAggregator.performGroupOperation(2003, 'OBJECTID', 'STCT_FIPS', 'fire_count', 'fips', Type="Mean", ascending=True)
+        self.assertEqual(df.shape, (58, 2))
     
-    def test_getFireCountsByYear(self):
-        pass
+    def test_getFireCountsByYear_columns(self):
+        fire_counts_by_year = self.FireAggregator.getFireCountsByYear(self.selected_year)
+        self.assertEqual(fire_counts_by_year.columns.tolist(), ['fips', 'fire_count', 'county'])
 
-    def test_getFireCatalystsByYear(self):
-        pass
+    def test_getFireCountsByYear_shape(self):
+        fire_counts_by_year = self.FireAggregator.getFireCountsByYear(self.selected_year)
+        self.assertEqual(fire_counts_by_year.shape, (58, 3))
 
-    def test_getMostAcresBurntFipsByYear(self):
-        pass
+    def test_getFireCatalystsByYear_columns(self):
+        fire_catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
+        self.assertEqual(fire_catalysts_by_year.columns.tolist(), ['catalyst', 'fire_count'])
 
-    def test_getAvgFireCatalystsByYear(self):
-        pass
+    def test_getFireCatalystsByYear_shape(self):
+        fire_catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
+        self.assertEqual(fire_catalysts_by_year.shape, (13, 2))
 
-    def test_getFireOverTimeByYear(self):
-        pass
+    def test_getMostAcresBurntFipsByYear_columns(self):
+        acres_burnt_by_year = self.FireAggregator.getMostAcresBurntFipsByYear(self.selected_year)
+        self.assertEqual(acres_burnt_by_year.columns.tolist(), ['fips', 'total_acres_burnt', 'county'])
+
+    def test_getMostAcresBurntFipsByYear_shape(self):
+        acres_burnt_by_year = self.FireAggregator.getMostAcresBurntFipsByYear(self.selected_year)
+        self.assertEqual(acres_burnt_by_year.shape, (10, 3))
+
+    def test_getAvgFireCatalystsByYear_columns(self):
+        catalysts_by_year_avg = self.FireAggregator.getAvgFireCatalystsByYear(self.selected_year)
+        self.assertEqual(catalysts_by_year_avg.columns.tolist(), ['catalyst', 'fire_avg_size'])
+
+    def test_getAvgFireCatalystsByYear_shape(self):
+        catalysts_by_year_avg = self.FireAggregator.getAvgFireCatalystsByYear(self.selected_year)
+        self.assertEqual(catalysts_by_year_avg.shape, (13, 2))
+
+    def test_getFireOverTimeByYear_columns(self):
+        fires_over_time_C = self.FireAggregator.getFireOverTimeByYear(self.selected_year)
+        self.assertEqual(fires_over_time_C.columns.tolist(), ['index', 'Time', 'fire_size'])
+
+    def test_getFireOverTimeByYear_shape(self):
+        fires_over_time_C = self.FireAggregator.getFireOverTimeByYear(self.selected_year)
+        self.assertEqual(fires_over_time_C.shape, (7904, 3))
 
     def test_getAllFireSizes(self):
         allsize = self.FireAggregator.getAllFireSizes()
+        allsize = allsize[:10].tolist()
+        self.assertEqual(allsize, [0.1, 0.1, 0.1, 0.1, 2.0, 0.1, 0.1, 0.1, 0.5, 0.2])
+
+    def test_getAllFireSizes_shape(self):
+        allsize = self.FireAggregator.getAllFireSizes()
+        self.assertEqual(allsize.shape,(99228,))
 
 class MapCreator_Test(unittest.TestCase):
     def test_MakeWildfireMap(self):
