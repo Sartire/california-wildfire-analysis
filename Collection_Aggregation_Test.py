@@ -13,7 +13,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
+        cls.DataCollector = FirePrecipDataCollection(2003, FIREPATH, PRECIP_PATH)
     
     def test_getFiresData_fires(self):
         expected_fires = pd.DataFrame({'Unnamed: 0': {0: 0, 1: 1, 2: 2},
@@ -207,11 +207,81 @@ class FireAggregations_Test(unittest.TestCase):
         self.assertEqual(allsize.shape,(99228,))
 
 class MapCreator_Test(unittest.TestCase):
-    def test_MakeWildfireMap(self):
-        pass
+
+    @classmethod
+    def setUpClass(cls):
+        DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
+        fires, years = DataCollector.getFiresData()
+        precip = DataCollector.getPrecipData()
+        daily = DataCollector.mergeFirePrecipDataDaily()
+        CountyDataCollector = CaliforniaYearlyCounty(startYear, fires, years)
+        yearlyData = CountyDataCollector.getYearlyDataDict()
+        cls.cali = CountyDataCollector.getCaliGeoJson()
+        caliCounties = CountyDataCollector.getCountyNames(cls.cali)
+        cls.FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
+        cls.selected_year = 2003
+        cls.Visualizer = MapCreator(cls.selected_year)
+        
+    def test_MakeWildfireMap_fig(self):
+        filtered_fires_by_fips = self.FireAggregator.getFireCountsByYear(self.selected_year)
+        fig = self.Visualizer.MakeWildfireMap(self.cali, filtered_fires_by_fips)
+        self.assertIsNotNone(fig)
+        
+    def test_MakeWildfireMap_Mapbox(self):
+        filtered_fires_by_fips = self.FireAggregator.getFireCountsByYear(self.selected_year)
+        fig = self.Visualizer.MakeWildfireMap(self.cali, filtered_fires_by_fips)
+        expected = ("pk.eyJ1IjoiY3NjaHJvZWQiLCJhIjoiY2s3YjJwcWk1MDFyNzNrbnpiaGdlajltbCJ9.8jO290WpRrStFoFl6oXDdA", "mapbox://styles/cschroed/cknl0nnlf219117qmeizntn9q")
+        returned = (fig['layout']['mapbox']['accesstoken'], fig['layout']['mapbox']['style'])
+        self.assertEqual(returned, expected)
 
 class ChartCreator_Test(unittest.TestCase):
-    pass
+
+    @classmethod
+    def setUpClass(cls):
+        DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
+        fires, years = DataCollector.getFiresData()
+        precip = DataCollector.getPrecipData()
+        CountyDataCollector = CaliforniaYearlyCounty(startYear, fires, years)
+        cls.yearlyData = CountyDataCollector.getYearlyDataDict()
+        cls.caliCounties = CountyDataCollector.getCountyNames(CountyDataCollector.getCaliGeoJson())
+        cls.daily = DataCollector.mergeFirePrecipDataDaily()
+        cls.FireAggregator = FireAggregations(cls.yearlyData, cls.caliCounties, cls.daily)
+        cls.allsize = cls.FireAggregator.getAllFireSizes()
+        cls.selected_year = 2003
+
+    def test_ChartStyling(self):
+        pass
+
+    def test_BarChart_fig(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_catalysts_single_year")
+        catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
+        fig = ChartVisualizer.BarChart(catalysts_by_year, 'catalyst', 'fire_count', "Fires by Catalyst", "Number of Fires", "Fire Catalyst")
+        self.assertIsNotNone(fig)
+
+
+    def test_ScatterPlot_fig(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_over_time_single_year_C")
+        fires_over_time_C = self.FireAggregator.getFireOverTimeByYear(self.selected_year)
+        fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
+        fig = ChartVisualizer.ScatterPlot(fires_over_time_C , flag="Y")
+
+
+    def test_twoLinePlot_fig(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_firesize_v_precip")
+        catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
+        fig = ChartVisualizer.twoLinePlot(title = "Fire Size and Precipitation",
+                                    y1 = 'b30',
+                                    y1_title="Area burned in last 30 days",
+                                    y1_units = "Acres",
+                                    y2 = 'p30',
+                                    y2_title = 'Precipitation in last 30 days',
+                                    y2_units = 'Inches')
+        self.assertIsNotNone(fig)
+
+    def test_DetermineWhichPlot_fig(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_over_time_single_year_C")
+        fig = ChartVisualizer.DetermineWhichPlot()
+        self.assertIsNotNone(fig)
 
         
 if __name__ == '__main__':
