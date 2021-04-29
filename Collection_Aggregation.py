@@ -146,10 +146,14 @@ class FireAggregations:
     # For "Fire size over time (single year)" graph aka "show_fire_over_time_single_year",
     def getFireOverTimeByYear(self, year):
         yearDF = self.yearlyData.get(year)
-        fires = yearDF[['DATETIME', 'FIRE_SIZE']]
-        fires.reset_index(inplace=True)
-        fires = fires.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
-        return fires
+        fire = yearDF[['DATETIME', 'FIRE_SIZE']]
+        fire.loc[:,'DATETIME'] = pd.to_datetime(fire['DATETIME'],format='%Y-%m-%d',cache=False)
+        fire.index = fire['DATETIME']
+        fire = fire.sort_index()  #to fix the index not being monotonic
+        fire.loc[:,'FIRE_SIZE'] = fire['FIRE_SIZE'].resample('7D').mean()
+        #fire.reset_index(inplace=True)
+        fire = fire.rename(columns={'FIRE_SIZE': 'fire_size', 'DATETIME': 'Time'})
+        return fire
     # For the density plots
     def getAllFireSizes(self):
         allsize = [self.yearlyData.get(x)['FIRE_SIZE'] for x in self.yearlyData]
