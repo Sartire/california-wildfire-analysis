@@ -356,7 +356,7 @@ class ChartCreator(FireAggregations):
                                     y2_units = 'Count of Fires')
         
         elif self.dropdown == "show_indexplot":
-            fig = self.indexLinePLot(title = 'Area Burned and Large Fire Concentration',
+            fig = self.indexLinePLot(title = 'Area Burned and Large Fire Concentration (1992-2015)',
                                      y1 = 'fsize_index',
                                      y2 = 'nf90_index',
                                      y1_title = 'Total Acreage Burned',
