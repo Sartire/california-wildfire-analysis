@@ -65,6 +65,29 @@ class FirePrecipDataCollection:
         daily['a30'] = daily['b30']/daily['f30']
         return daily
 
+    def getTotalFireSizeAnd90PctTable(self):
+        
+        df = self.readInData(self.firePath)
+        size = 'FIRE_SIZE'
+        year = 'FIRE_YEAR'
+        id = 'OBJECTID'
+        years = df.sort_values(size, ascending=False).groupby(year)
+        totalAcresByYear = df[size].groupby(df[year]).sum()
+        fireCountsByYear = df[id].groupby(df[year]).count().to_frame().reset_index()
+        fireCountsByYear = fireCountsByYear.rename(columns={id:'Total Fires'})
+        numberFires90Pct = []
+        for year, yearDF in years:
+            yearDF['cumsum'] = yearDF[size].cumsum()
+            cond = yearDF.where(yearDF['cumsum']<totalAcresByYear[year]*.9).dropna()
+            numberFires90Pct.append(cond[id].count())
+        totalAcresByYear = totalAcresByYear.to_frame().reset_index()
+        totalAcresByYear['Total Fires'] = fireCountsByYear['Total Fires']
+        totalAcresByYear['nf90'] = numberFires90Pct/fireCountsByYear['Total Fires']
+        totalAcresByYear['nf90_index'] = 100*totalAcresByYear['nf90']/(totalAcresByYear['nf90'][0])
+        totalAcresByYear['fsize_index'] = 100*totalAcresByYear['FIRE_SIZE']/(totalAcresByYear['FIRE_SIZE'][0])
+        return totalAcresByYear
+
+
 class CaliforniaYearlyCounty():
 
     def __init__(self, year, fires, years):
@@ -189,11 +212,12 @@ class MapCreator:
 
 class ChartCreator(FireAggregations):
 
-    def __init__(self, yearlyData, caliCounties, daily, allsize, year, dropdown):
+    def __init__(self, yearlyData, caliCounties, daily, fsize_p90, allsize, year, dropdown):
         FireAggregations.__init__(self, yearlyData, caliCounties, daily)
         self.year = year
         self.dropdown = dropdown
         self.allsize = allsize
+        self.fsize_p90 = fsize_p90
 
     def ChartStyling(self, fig, t="B", yLabel=None, xLabel=None):
         fig_layout = fig["layout"]
@@ -259,6 +283,22 @@ class ChartCreator(FireAggregations):
         fig.update_yaxes(title_text=y2_units, secondary_y=True)
         self.ChartStyling(fig, t="L2")
         return fig
+    
+    def indexLinePLot(self, title, y1, y2, y1_title, y2_title):
+        fig = make_subplots()
+        fd = self.fsize_p90
+        fig.add_trace(go.Scatter(x=fd['FIRE_YEAR'], y=fd[y1], name=y1_title))
+        fig.add_trace(go.Scatter(x=fd['FIRE_YEAR'], y=fd[y2], name=y2_title))
+        fig.update_layout(title_text=title,
+                            legend = dict(
+                            orientation = "h",
+                            x=0,
+                            y=1.1
+                            ),)   
+        fig.update_xaxes(title_text="Year")
+        fig.update_yaxes(title_text="Index, 1992 = 100")
+        self.ChartStyling(fig, t="L2")
+        return fig
 
     def DetermineWhichPlot(self):
 
@@ -314,6 +354,13 @@ class ChartCreator(FireAggregations):
                                     y2 = 'f7',
                                     y2_title = 'Number of Fires in last 7 days',
                                     y2_units = 'Count of Fires')
+        
+        elif self.dropdown == "show_indexplot":
+            fig = self.indexLinePLot(title = 'Area Burned and Large Fire Concentration',
+                                     y1 = 'fsize_index',
+                                     y2 = 'nf90_index',
+                                     y1_title = 'Total Acreage Burned',
+                                     y2_title = 'Percentage of Fires Causing 90% of Burning')
 
 # =============================================================================
 #         elif self.dropdown == 'show_firesize_hist':

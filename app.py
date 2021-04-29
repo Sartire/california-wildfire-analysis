@@ -23,7 +23,7 @@ precipitation, and daily precipitation datasets
 DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
 fires, years = DataCollector.getFiresData()
 daily = DataCollector.mergeFirePrecipDataDaily()
-
+fsize_p90 =  DataCollector.getTotalFireSizeAnd90PctTable()
 '''
 Creating a county data collector object and obtaining the yearly data by county,
 and the cali geojson objects by year
@@ -134,6 +134,10 @@ app.layout = html.Div(
                                     "label": "Average Fire Size (Weekly)",
                                     "value": "show_avg_firesize_counts_w",
                                 },
+                                {
+                                    "label": 'Area Burned and Large Fire Concentration',
+                                    "value": "show_indexplot",
+                                },
 # =============================================================================
 #                                 {
 #                                     "label": "Fire Size Distribution",
@@ -180,7 +184,7 @@ def update_figure(selected_year):
     ],
 )
 def update_chart(selected_year, chart_dropdown):
-    ChartVisualizer = ChartCreator(yearlyData, caliCounties, daily, allsize, selected_year, chart_dropdown)
+    ChartVisualizer = ChartCreator(yearlyData, caliCounties, daily, fsize_p90, allsize, selected_year, chart_dropdown)
     fig = ChartVisualizer.DetermineWhichPlot()
     return fig
 
