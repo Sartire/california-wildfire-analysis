@@ -39,27 +39,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         expected_years = np.array([2005, 2006, 2007, 2008, 2009, 2003, 2004, 2010, 2011, 2012, 2013, 2014, 2015])
         _fires, years = self.DataCollector.getFiresData()
         np.testing.assert_array_equal(years, expected_years)
-    """
-    def test_getFiresData_pfires(self):
-        expected_pfires = pd.DataFrame({'Unnamed: 0': {0: 0, 1: 1, 2: 2},
-                                        'OBJECTID': {0: 1, 1: 1446, 2: 1793},
-                                        'FIRE_YEAR': {0: 2005, 1: 2005, 2: 2005},
-                                        'STAT_CAUSE_DESCR': {0: 'Miscellaneous', 1: 'Miscellaneous', 2: 'Miscellaneous'},
-                                        'FIRE_SIZE': {0: 0.1, 1: 0.1, 2: 0.1},
-                                        'FIRE_SIZE_CLASS': {0: 'A', 1: 'A', 2: 'A'},
-                                        'LATITUDE': {0: 40.03694444, 1: 40.00472222, 2: 40.09305556},
-                                        'LONGITUDE': {0: -121.00583333, 1: -121.26055556, 2: -120.91},
-                                        'GEOID': {0: 60630004002, 1: 60630004002, 2: 60630004002},
-                                        'STCT_FIPS': {0: '06063', 1: '06063', 2: '06063'},
-                                        'DATETIME': {0: '2005-02-02', 1: '2005-08-24', 2: '2005-08-25'},
-                                        'MONTH': {0: 'February', 1: 'August', 2: 'August'}})
-        _fires, _years, pfires = self.DataCollector.getFiresData()
-        pd.testing.assert_frame_equal(pfires.head(3), expected_pfires, check_dtype=True)
 
-    def test_getFiresData_pfires_shape(self):
-        _fires, _years, pfires = self.DataCollector.getFiresData()
-        self.assertEqual(pfires.shape, (106354, 12))
-    """
     def test_getPrecipData(self):
         expected_precip = pd.DataFrame({'STCT_FIPS': {450069: '06115', 450070: '06115', 450071: '06115'},
                                         'date': {450069: Timestamp('2013-12-30 00:00:00'), 450070: Timestamp('2013-12-31 00:00:00'), 450071: Timestamp('2014-01-01 00:00:00')},
@@ -249,8 +229,33 @@ class ChartCreator_Test(unittest.TestCase):
         cls.allsize = cls.FireAggregator.getAllFireSizes()
         cls.selected_year = 2003
 
-    def test_ChartStyling(self):
-        pass
+    def test_ChartStyling_BarChart(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_catalysts_single_year")
+        catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
+        title = "Fires by Catalyst" + ", <b>{0}</b>".format(self.selected_year)
+        fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title=title)
+        self.assertEqual(fig["layout"]["title"]["text"],"Fires by Catalyst, <b>2003</b>")
+
+    def test_ChartStyling_ScatterPlot(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_over_time_single_year_C")
+        fires_over_time_C = self.FireAggregator.getFireOverTimeByYear(self.selected_year)
+        fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
+        fig = px.scatter(fires_over_time_C, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", range_color=[0,100], title = "Fire Size Over Time (Class A-C)")
+        ChartVisualizer.ChartStyling(fig, t="S")
+        self.assertEqual(fig["layout"]["yaxis"]["title"]["text"],"Fire Size (Acres)")
+
+    def test_ChartStyling_TwoLinePlot(self):
+        ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_firesize_v_precip")
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fd = self.daily[self.daily['date'].dt.year == self.selected_year]
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd['b30'], name="Area burned in last 30 days"),secondary_y=False)
+        fig.add_trace(go.Scatter(x=fd['date'], y=fd['p30'], name="Precipitation in last 30 days"),secondary_y=True)
+        fig.update_layout(title_text="Fire Size and Precipitation", legend = dict(orientation = "h",x=0,y=1.1),)
+        fig.update_xaxes(title_text="Date")
+        fig.update_yaxes(title_text="Acres", secondary_y=False)
+        fig.update_yaxes(title_text="Inches", secondary_y=True)
+        ChartVisualizer.ChartStyling(fig, t="L2")
+        self.assertEqual(fig["data"][0]["marker"]["color"],"#fd6e6e")
 
     def test_BarChart_fig(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_catalysts_single_year")
@@ -258,13 +263,12 @@ class ChartCreator_Test(unittest.TestCase):
         fig = ChartVisualizer.BarChart(catalysts_by_year, 'catalyst', 'fire_count', "Fires by Catalyst", "Number of Fires", "Fire Catalyst")
         self.assertIsNotNone(fig)
 
-
     def test_ScatterPlot_fig(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_fire_over_time_single_year_C")
         fires_over_time_C = self.FireAggregator.getFireOverTimeByYear(self.selected_year)
         fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
         fig = ChartVisualizer.ScatterPlot(fires_over_time_C , flag="Y")
-
+        self.assertIsNotNone(fig)
 
     def test_twoLinePlot_fig(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.allsize, self.selected_year, "show_firesize_v_precip")
