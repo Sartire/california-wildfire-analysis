@@ -9,8 +9,12 @@ FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
 PRECIP_PATH = './data/precip_agg_series.csv'
 startYear = 2003
 
+# Testing the functions within the FirePrecipDataCollection class.
 class FirePrecipDataCollection_Test(unittest.TestCase):
 
+    # Create the objects necessary for each function to run properly in a classmethod to reduce unnecessary duplication.
+    # Only objects that remain consistent across all functions are created in the classmethod.
+    # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
         cls.DataCollector = FirePrecipDataCollection(2003, FIREPATH, PRECIP_PATH)
@@ -27,6 +31,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         data = self.DataCollector.readInData(FIREPATH)
         self.assertEqual(data['STCT_FIPS'].unique().tolist(), expected_FIPS)
 
+
     def test_readInData_PRECIP_PATH(self):
         expected_FIPS = ['06001','06003','06005','06007','06009','06013','06015','06017','06019',
                         '06021','06023','06025','06027','06029','06031','06033','06035','06037',
@@ -38,6 +43,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         data = self.DataCollector.readInData(PRECIP_PATH)
         self.assertEqual(data['STCT_FIPS'].unique().tolist(), expected_FIPS)
     
+
     def test_getFiresData_fires(self):
         expected_fires = pd.DataFrame({'Unnamed: 0': {0: 0, 1: 1, 2: 2},
                                        'OBJECTID': {0: 1, 1: 1446, 2: 1793},
@@ -54,14 +60,17 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         fires, _years = self.DataCollector.getFiresData()
         pd.testing.assert_frame_equal(fires.head(3), expected_fires)
     
+
     def test_getFiresData_fires_shape(self):
         fires, _years = self.DataCollector.getFiresData()
         self.assertEqual(fires.shape, (99228, 12))
+
 
     def test_getFiresData_years(self):
         expected_years = np.array([2005, 2006, 2007, 2008, 2009, 2003, 2004, 2010, 2011, 2012, 2013, 2014, 2015])
         _fires, years = self.DataCollector.getFiresData()
         np.testing.assert_array_equal(years, expected_years)
+
 
     def test_getPrecipData(self):
         expected_precip = pd.DataFrame({'STCT_FIPS': {450069: '06115', 450070: '06115', 450071: '06115'},
@@ -76,9 +85,11 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         precip = self.DataCollector.getPrecipData()
         pd.testing.assert_frame_equal(precip.tail(3), expected_precip, check_dtype=True)
 
+
     def test_getPrecipData_shape(self):
         precip = self.DataCollector.getPrecipData()
         self.assertEqual(precip.shape, (450072, 9))
+
 
     def test_mergeFirePrecipDataDaily(self):
         expected_daily = pd.DataFrame({'date': {4577: Timestamp('2015-12-29 00:00:00'), 4578: Timestamp('2015-12-30 00:00:00'), 4579: Timestamp('2015-12-31 00:00:00')},
@@ -94,15 +105,21 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         daily = self.DataCollector.mergeFirePrecipDataDaily()
         pd.testing.assert_frame_equal(daily.tail(3), expected_daily, check_dtype=True)
 
+
     def test_mergeFirePrecipDataDaily_shape(self):
         daily = self.DataCollector.mergeFirePrecipDataDaily()
         self.assertEqual(daily.shape, (4580, 10))
 
+
     def test_getTotalFireSizeAnd90PctTable(self):
         pass
 
+# Testing the functions within the CaliforniaYearlyCounty class.
 class CaliforniaYearlyCounty_Test(unittest.TestCase):
 
+    # Create the objects necessary for each function to run properly in a classmethod to reduce unnecessary duplication.
+    # Only objects that remain consistent across all functions are created in the classmethod.
+    # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
         DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
@@ -126,8 +143,12 @@ class CaliforniaYearlyCounty_Test(unittest.TestCase):
         caliCounties = self.CountyDataCollector.getCountyNames(cali)
         self.assertEqual(caliCounties.shape, (58, 2))
 
+# Testing the functions within the FireAggregations class.
 class FireAggregations_Test(unittest.TestCase):
 
+    # Create the objects necessary for each function to run properly in a classmethod to reduce unnecessary duplication.
+    # Only objects that remain consistent across all functions are created in the classmethod.
+    # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
         DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
@@ -212,8 +233,12 @@ class FireAggregations_Test(unittest.TestCase):
         allsize = self.FireAggregator.getAllFireSizes()
         self.assertEqual(allsize.shape,(99228,))
 
+# Testing the functions within the MapCreator class.
 class MapCreator_Test(unittest.TestCase):
 
+    # Create the objects necessary for each function to run properly in a classmethod to reduce unnecessary duplication.
+    # Only objects that remain consistent across all functions are created in the classmethod.
+    # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
         DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
@@ -240,8 +265,12 @@ class MapCreator_Test(unittest.TestCase):
         returned = (fig['layout']['mapbox']['accesstoken'], fig['layout']['mapbox']['style'])
         self.assertEqual(returned, expected)
 
+# Testing the functions within the ChartCreator class.
 class ChartCreator_Test(unittest.TestCase):
 
+    # Create the objects necessary for each function to run properly in a classmethod to reduce unnecessary duplication.
+    # Only objects that remain consistent across all functions are created in the classmethod.
+    # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
         DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
@@ -269,7 +298,7 @@ class ChartCreator_Test(unittest.TestCase):
         fires_over_time_C = fires_over_time_C[fires_over_time_C['fire_size'] < 100]
         fig = px.scatter(fires_over_time_C, x='Time', y='fire_size', color="fire_size", color_continuous_scale="redor", range_color=[0,100], title = "Fire Size Over Time (Class A-C)")
         ChartVisualizer.ChartStyling(fig, t="S")
-        self.assertEqual(fig["layout"]["yaxis"]["title"]["text"],"Fire Size (Acres)")
+        self.assertEqual(fig["layout"]["xaxis"]["title"]["text"],"")
 
     def test_ChartStyling_TwoLinePlot(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.fsize_p90, self.allsize, self.selected_year, "show_firesize_v_precip")
@@ -282,7 +311,7 @@ class ChartCreator_Test(unittest.TestCase):
         fig.update_yaxes(title_text="Acres", secondary_y=False)
         fig.update_yaxes(title_text="Inches", secondary_y=True)
         ChartVisualizer.ChartStyling(fig, t="L2")
-        self.assertEqual(fig["data"][0]["marker"]["color"],"#fd6e6e")
+        self.assertEqual(fig["data"][1]["marker"]["color"],"#58cce3")
 
     def test_BarChart_fig(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.fsize_p90, self.allsize, self.selected_year, "show_fire_catalysts_single_year")
@@ -316,4 +345,4 @@ class ChartCreator_Test(unittest.TestCase):
 
         
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main()      
