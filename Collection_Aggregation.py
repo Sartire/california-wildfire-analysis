@@ -354,6 +354,8 @@ class ChartCreator(FireAggregations):
                                     y2 = 'f7',
                                     y2_title = 'Number of Fires in last 7 days',
                                     y2_units = 'Count of Fires')
+            fig_data = fig["data"] 
+            fig_data[1]["marker"]["color"] = '#fcc9a1'
         
         elif self.dropdown == "show_indexplot":
             fig = self.indexLinePLot(title = 'Area Burned and Large Fire Concentration (1992-2015)',
@@ -361,6 +363,8 @@ class ChartCreator(FireAggregations):
                                      y2 = 'nf90_index',
                                      y1_title = 'Total Acreage Burned',
                                      y2_title = 'Percentage of Fires Causing 90% of Burning')
+            fig_data = fig["data"] 
+            fig_data[1]["marker"]["color"] = '#fcc9a1'
 
 # =============================================================================
 #         elif self.dropdown == 'show_firesize_hist':
