@@ -1,4 +1,4 @@
-# Visualizing California Wildfires (2003-2015)
+# Visualizing California Wildfires (1992-2015)
 by Timothy Tyree, Christian Schroeder, Alexander DeLuca, and Antoine Edelman
 
 UVA School of Data Science, CS 5010
