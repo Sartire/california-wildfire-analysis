@@ -7,7 +7,7 @@ from Collection_Aggregation import *
 
 FIREPATH = './data/fires_cleaned/final_fires_cleaned.csv'
 PRECIP_PATH = './data/precip_agg_series.csv'
-startYear = 2003
+startYear = 1992
 
 # Testing the functions within the FirePrecipDataCollection class.
 class FirePrecipDataCollection_Test(unittest.TestCase):
@@ -17,7 +17,7 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
     # Objects that change based on desired output are created within the test functions. 
     @classmethod
     def setUpClass(cls):
-        cls.DataCollector = FirePrecipDataCollection(2003, FIREPATH, PRECIP_PATH)
+        cls.DataCollector = FirePrecipDataCollection(1992, FIREPATH, PRECIP_PATH)
 
 
     def test_readInData_FIREPATH(self):
@@ -59,18 +59,15 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
                                        'MONTH': {0: 'February', 1: 'August', 2: 'August'}})
         fires, _years = self.DataCollector.getFiresData()
         pd.testing.assert_frame_equal(fires.head(3), expected_fires)
-    
 
     def test_getFiresData_fires_shape(self):
         fires, _years = self.DataCollector.getFiresData()
-        self.assertEqual(fires.shape, (99228, 12))
-
+        self.assertEqual(fires.shape, (189411, 12))
 
     def test_getFiresData_years(self):
-        expected_years = np.array([2005, 2006, 2007, 2008, 2009, 2003, 2004, 2010, 2011, 2012, 2013, 2014, 2015])
+        expected_years_sorted = np.array([1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015])
         _fires, years = self.DataCollector.getFiresData()
-        np.testing.assert_array_equal(years, expected_years)
-
+        np.testing.assert_array_equal(np.sort(years), expected_years_sorted)
 
     def test_getPrecipData(self):
         expected_precip = pd.DataFrame({'STCT_FIPS': {450069: '06115', 450070: '06115', 450071: '06115'},
@@ -85,35 +82,58 @@ class FirePrecipDataCollection_Test(unittest.TestCase):
         precip = self.DataCollector.getPrecipData()
         pd.testing.assert_frame_equal(precip.tail(3), expected_precip, check_dtype=True)
 
-
     def test_getPrecipData_shape(self):
         precip = self.DataCollector.getPrecipData()
         self.assertEqual(precip.shape, (450072, 9))
 
+    def test_prepPrecipDailyData_columns(self):
+        pdaily = self.DataCollector.prepPrecipDailyData()
+        self.assertEqual(pdaily.columns.tolist(), ['date', 'station_sum', 'p30'])
+
+    def test_prepPrecipDailyData_shape(self):
+        pdaily = self.DataCollector.prepPrecipDailyData()
+        self.assertEqual(pdaily.shape, (8037, 3))
+
+    def test_prepFireDailyData_columns(self):
+        fdaily = self.DataCollector.prepFireDailyData()
+        self.assertEqual(fdaily.columns.tolist(), ['date', 'FIRE_SIZE', 'b30', 'f7', 'f30', 'b7'])
+
+    def test_prepFireDailyData_shape(self):
+        fdaily = self.DataCollector.prepFireDailyData()
+        self.assertEqual(fdaily.shape, (8323, 6))
 
     def test_mergeFirePrecipDataDaily(self):
-        expected_daily = pd.DataFrame({'date': {4577: Timestamp('2015-12-29 00:00:00'), 4578: Timestamp('2015-12-30 00:00:00'), 4579: Timestamp('2015-12-31 00:00:00')},
-                                       'FIRE_SIZE': {4577: 0.12, 4578: 0.1, 4579: 0.22000000000000003},
-                                       'b30': {4577: 1361.76, 4578: 1359.33, 4579: 1356.62},
-                                       'f7': {4577: 22.0, 4578: 21.0, 4579: 24.0},
-                                       'f30': {4577: 147.0, 4578: 137.0, 4579: 130.0},
-                                       'b7': {4577: 1292.1900000000583, 4578: 1292.1800000000583, 4579: 1292.3900000000583},
-                                       'station_sum': {4577: nan, 4578: nan, 4579: nan},
-                                       'p30': {4577: nan, 4578: nan, 4579: nan},
-                                       'a7': {4577: 58.73590909091174, 4578: 61.532380952383726, 4579: 53.849583333335765},
-                                       'a30': {4577: 9.263673469387754, 4578: 9.922116788321167, 4579: 10.43553846153846}})
+        expected_daily = pd.DataFrame({'date': {8320: Timestamp('2015-12-29 00:00:00'), 8321: Timestamp('2015-12-30 00:00:00'), 8322: Timestamp('2015-12-31 00:00:00')},
+                                       'FIRE_SIZE': {8320: 0.12, 8321: 0.1, 8322: 0.22000000000000003},
+                                       'b30': {8320: 1361.7600000001164, 8321: 1359.3300000001163, 8322: 1356.6200000001163},
+                                       'f7': {8320: 22.0, 8321: 21.0, 8322: 24.0},
+                                       'f30': {8320: 147.0, 8321: 137.0, 8322: 130.0},
+                                       'b7': {8320: 1292.1900000000583, 8321: 1292.1800000000583, 8322: 1292.3900000000583},
+                                       'station_sum': {8320: nan, 8321: nan, 8322: nan},
+                                       'p30': {8320: nan, 8321: nan, 8322: nan},
+                                       'a7': {8320: 58.73590909091174, 8321: 61.532380952383726, 8322: 53.849583333335765},
+                                       'a30': {8320: 9.263673469388547, 8321: 9.922116788322016, 8322: 10.435538461539355}})
         daily = self.DataCollector.mergeFirePrecipDataDaily()
         pd.testing.assert_frame_equal(daily.tail(3), expected_daily, check_dtype=True)
 
-
     def test_mergeFirePrecipDataDaily_shape(self):
         daily = self.DataCollector.mergeFirePrecipDataDaily()
-        self.assertEqual(daily.shape, (4580, 10))
+        self.assertEqual(daily.shape, (8323, 10))
 
+    def test_getTotalFireSizeAnd90PctTable_columns(self):
+        expected_fsize_p90 = pd.DataFrame({'FIRE_YEAR': {0: 1992, 1: 1993, 2: 1994},
+                                           'FIRE_SIZE': {0: 294017.5999999876, 1: 321468.8999999812, 2: 407943.3999999603},
+                                           'Total Fires': {0: 10808, 1: 8265, 2: 8645},
+                                           'nf90': {0: 0.01924500370096225, 1: 0.01572897761645493, 2: 0.013071139386928861},
+                                           'nf90_index': {0: 100.0, 1: 81.73018753781004, 2: 67.91965119900343},
+                                           'fsize_index': {0: 100.0, 1: 109.33661794395805, 2: 138.747952503516}})
+        fsize_p90 = self.DataCollector.getTotalFireSizeAnd90PctTable()
+        self.assertEqual(fsize_p90.columns.tolist(), ['FIRE_YEAR', 'FIRE_SIZE', 'Total Fires', 'nf90', 'nf90_index', 'fsize_index'])
 
-    def test_getTotalFireSizeAnd90PctTable(self):
-        pass
-
+    def test_getTotalFireSizeAnd90PctTable_shape(self):
+        fsize_p90 = self.DataCollector.getTotalFireSizeAnd90PctTable()
+        self.assertEqual(fsize_p90.shape, (24, 6))
+        
 # Testing the functions within the CaliforniaYearlyCounty class.
 class CaliforniaYearlyCounty_Test(unittest.TestCase):
 
@@ -131,7 +151,7 @@ class CaliforniaYearlyCounty_Test(unittest.TestCase):
     def test_getYearlyDataDict_shape(self):
         yearlyData = self.CountyDataCollector.getYearlyDataDict()
         lengths = [len(yearlyData[year]) for year in yearlyData]
-        self.assertEqual(lengths, [6670, 8268, 10142, 7740, 6938, 7904, 7410, 5776, 8561, 7225, 8720, 6499, 7375])
+        self.assertEqual(lengths, [6670, 8268, 10142, 7740, 6938, 10808, 8265, 8645, 7366, 9159, 7922, 6853, 8894, 6969, 8176, 7126, 7904, 7410, 5776, 8561, 7225, 8720, 6499, 7375])
 
     def test_getCaliGeoJson_shape(self):
         cali = self.CountyDataCollector.getCaliGeoJson()
@@ -160,7 +180,7 @@ class FireAggregations_Test(unittest.TestCase):
         cali = CountyDataCollector.getCaliGeoJson()
         caliCounties = CountyDataCollector.getCountyNames(cali)
         cls.FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
-        cls.selected_year = 2003
+        cls.selected_year = 2003 # set to 2003 to passively test the ability to set the start year
 
     def test_performGroupOperation_count(self):
         expected_df = pd.DataFrame({'fips': {0: '06031', 1: '06041', 2: '06075'},
@@ -231,7 +251,7 @@ class FireAggregations_Test(unittest.TestCase):
 
     def test_getAllFireSizes_shape(self):
         allsize = self.FireAggregator.getAllFireSizes()
-        self.assertEqual(allsize.shape,(99228,))
+        self.assertEqual(allsize.shape, (189411,))
 
 # Testing the functions within the MapCreator class.
 class MapCreator_Test(unittest.TestCase):
@@ -250,7 +270,7 @@ class MapCreator_Test(unittest.TestCase):
         cls.cali = CountyDataCollector.getCaliGeoJson()
         caliCounties = CountyDataCollector.getCountyNames(cls.cali)
         cls.FireAggregator = FireAggregations(yearlyData, caliCounties, daily)
-        cls.selected_year = 2003
+        cls.selected_year = 1992
         cls.Visualizer = MapCreator(cls.selected_year)
         
     def test_MakeWildfireMap_fig(self):
@@ -283,14 +303,14 @@ class ChartCreator_Test(unittest.TestCase):
         cls.fsize_p90 =  DataCollector.getTotalFireSizeAnd90PctTable()
         cls.FireAggregator = FireAggregations(cls.yearlyData, cls.caliCounties, cls.daily)
         cls.allsize = cls.FireAggregator.getAllFireSizes()
-        cls.selected_year = 2003
+        cls.selected_year = 1992
 
     def test_ChartStyling_BarChart(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.fsize_p90, self.allsize, self.selected_year, "show_fire_catalysts_single_year")
         catalysts_by_year = self.FireAggregator.getFireCatalystsByYear(self.selected_year)
         title = "Fires by Catalyst" + ", <b>{0}</b>".format(self.selected_year)
         fig = px.bar(catalysts_by_year, x='catalyst', y='fire_count', title=title)
-        self.assertEqual(fig["layout"]["title"]["text"],"Fires by Catalyst, <b>2003</b>")
+        self.assertEqual(fig["layout"]["title"]["text"],"Fires by Catalyst, <b>1992</b>")
 
     def test_ChartStyling_ScatterPlot(self):
         ChartVisualizer = ChartCreator(self.yearlyData, self.caliCounties, self.daily, self.fsize_p90, self.allsize, self.selected_year, "show_fire_over_time_single_year_C")
