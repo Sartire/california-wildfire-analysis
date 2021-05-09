@@ -44,8 +44,8 @@ To supplement our fire data with additional environmental conditions, we pulled 
 For our visualizations we aggregate `station_sum` to the state level. 
 
 ## Design Process
-
-At the outset of our project, we thought an interactive dashboard with maps and charts would be an ideal way to present and organize our results as we found them. [Dash](https://plotly.com/dash/), [Plotly](https://plotly.com), and [Mapbox](https://www.mapbox.com/maps/) were natural library choices for our goals. We began by prototyping the dashboard and creating a workflow for integrating additional visualizations. We were then able to work on optimizing the code, testing the dashboard, and building our analysis in parallel. We deployed our final product as a web page using [Heroku](https://www.heroku.com)
+### Dashboard
+At the outset of our project, we thought an interactive dashboard with maps and charts would be an ideal way to present and organize our results as we found them. [Dash](https://plotly.com/dash/), [Plotly](https://plotly.com), and [Mapbox](https://www.mapbox.com/maps/) were natural library choices for our goals. We began by prototyping the dashboard and creating a workflow for integrating additional visualizations. We were then able to work on optimizing the code, testing the dashboard, and building our analysis in parallel. We deployed our final product as a web page using [Heroku](https://www.heroku.com).
 
 Our exploratory analysis was an iterative process. We started with visualizations of summary statistics in our data. As we analyzed these, new questions arose and we worked through progressively more complex methods of processing the data. 
 
@@ -144,13 +144,23 @@ In order to allow the people to interact with the data, we created a Dash framew
 
 ## Results
 
-The final result of our project was an interactive Dash app, hosted through Heroku, that visualized the wildfire data on a map and through charts based on the selected year.
+The final result of our project was an interactive Dash app, hosted through Heroku, that visualized the wildfire data on a map and through charts based on the selected year. The web map in the dashboard is interactive, allowing the user to zoom in and out, pan across the map, and hover over areas to bring up a pop-up showing the number of fires in that county for the selected year.
 
-There are some measurement issues in the fire data. We found that large portions of the fire causes were categorized as miscellaneous, missing, or undefined. We also found unusually high concentrations at fire sizes of exactly one tenth of an acre and one acre, which we interpret as reporting bias. 
+Something to note when viewing a choropleth map like this is the intrinsic bias that comes from visualizing data through non-uniform area polygons. Not taking into account the ratio of the number of fires to the size of the area can result in a similar effect to viewing an election map showing which candidate won each state. In this situation, that bias is not as prevalent with generally similar-sized counties, with the exception of the southeastern counties.
+
+![Preview](figures/map-view.png)
+
+Through further analysis and visualization we noticed some measurement issues in the fire data. We found that large portions of the fire causes were categorized as miscellaneous, missing, or undefined. We also found unusually high concentrations at fire sizes of exactly one tenth of an acre and one acre, which we interpret as reporting bias.
+
+![Preview](figures/fires-by-catalyst-2014.png)
 
 Unsurprisingly, we found a persistent negative relationship between rainfall and acreage burnt in the past thirty days. This confirms the popular, common sense view of a rainy season and a dry fire season.
 
+![Preview](figures/fire-size-and-precipitation.png)
+
 We also found there to be a negative correlation between the yearly acreage burnt and the yearly percentage of fires accounting for 90 percent of the area burned. This suggests that it is not the sheer number of fires, but the presence of more extreme fires driving increased damage in California.
+
+![Preview](figures/area-burned-fire-concentration.png)
 
 ## Testing
 
@@ -184,7 +194,7 @@ def setUpClass(cls):
 The type of values we tested depended on the nature of the functions. The majority of functions were tested in a variety of ways. Our unit testing confirmed that our data processing methods and the application were running as expected.
 
 ## Conclusions
-Through our analysis of wildfires in California from 1992-2015, we were able to confirm the inverse relationship of rainfall to number of fires, as well as identify what is probably a common misconception on the relationship of number of fires to area burnt.
+Through our analysis of wildfires in California from 1992-2015, we were able to confirm the inverse relationship of rainfall to fire size, as well as identify what is probably a common misconception on the relationship of number of fires to area burnt.
 
 We found that in periods where extreme levels of damage occurred, it was more often that the majority of damage came from a select few or a single fire. This could perhaps be attributed to the aggressive nature of wildfires and their ability to rapidly spread, in relation to the reaction times of local emergency response teams. One way we would like to expand on this would be to incorporate data on locality fire department funding, as well as information on areas that fall under federal jurisdiction.
 
