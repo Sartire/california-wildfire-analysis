@@ -6,6 +6,10 @@ UVA School of Data Science, CS 5010
 ## Introduction
 Between 1992 and 2015, there were an estimated 189,000 wildfires across the state of California. Wildfires can be a devastating natural disaster if not properly monitored, researched, and mitigated. These fires have recently caused frequent news coverage and even migration. For this project we created a web map that allows easier visualization and analysis of wildfires, their catalysts, and their destruction with the goal that it could be used by state and local governments in key policy making decisions involving wildfire reaction procedures. Our web map explores the correlations between various catalysts, weather conditions, and the resulting damages of these wildfires.
 
+Dashboard: [Visualizing California Wildfires (1992-2015)](https://california-wildfire-analysis.herokuapp.com/)
+
+![Preview](figures/dashboard-view.png)
+
 ## The Data
 We utilized several sources to develop our final dataset of wildfires in California. The primary dataset we used was 1.88 Million US Wildfires from [Kaggle](https://www.kaggle.com/rtatman/188-million-us-wildfires), a spatial database of wildfires that occurred between 1992 and 2015 across the United States. The records were acquired from the federal, state, and local fire organization reporting systems. The data was downloaded locally as a SQLite database.
 
