@@ -23,9 +23,14 @@ We utilized several sources to develop our final dataset of wildfires in Califor
 - DATETIME: Date the wildfire started (YYYY-MM-DD)
 - MONTH: Month the wildfire occured
 
-To supplement our fire data with additional environmental conditions, we pulled rainfall measurement data from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level.
+To supplement our fire data with additional environmental conditions, we pulled rainfall measurement data from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level and transformed them into a daily time series.
 
-## Experimental Design
+## Design Process
+
+At the outset of our project, we thought an interactive dashboard with maps and charts would be an ideal way to present and organize our results as we found them. [Dash](https://plotly.com/dash/), [Plotly](https://plotly.com), and [Mapbox](https://www.mapbox.com/maps/) were natural library choices for our goals. We began by prototyping the dashboard and creating a workflow for integrating additional visualizations. We were then able to work on optimizing the code, testing the dashboard, and building our analysis in parallel. We deployed our final product as a web page using [Heroku](https://www.heroku.com)
+
+Our exploratory analysis was an iterative process. We started with visualizations of summary statistics in our data. As we analyzed these, new questions arose and we worked through progressively more complex methods of processing the data. 
+
 ### The Code
 
 ### Unit Testing
