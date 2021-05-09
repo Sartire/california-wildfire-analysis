@@ -157,7 +157,7 @@ Something to note when viewing a choropleth map like this is the intrinsic bias 
 
 ![Preview](figures/map-view.png)
 
-Through further analysis and visualization we noticed some measurement issues in the fire data. We found that large portions of the fire causes were categorized as miscellaneous, missing, or undefined. We also found unusually high concentrations at fire sizes of exactly one tenth of an acre and one acre, which we interpret as reporting bias.
+Through further analysis and visualization we noticed some measurement issues in the fire data. We found that large portions of the fire causes were categorized as miscellaneous, missing, or undefined. For 16 of the 24 years of data, either `Miscellaneous` or `Missing/Undefined` was the most common wildfire catalyst. Of the identifiable causes, `Equipment Use` and `Lighting` were the most common throughout the years. We also found unusually high concentrations at fire sizes of exactly one tenth of an acre and one acre, which we interpret as reporting bias.
 
 ![Preview](figures/fires-by-catalyst-2014.png)
 
@@ -183,19 +183,13 @@ def test_getYearlyDataDict_shape(self):
 Each test class required several objects and variables to be set before testing could begin, so a setUpClass method was added to each class to reduce the number of duplicate variables being created.
 
 ```python
-@classmethod
-def setUpClass(cls):
-	DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
-	fires, years = DataCollector.getFiresData()
-	precip = DataCollector.getPrecipData()
-	CountyDataCollector = CaliforniaYearlyCounty(startYear, fires, years)
-	cls.yearlyData = CountyDataCollector.getYearlyDataDict()
-	cls.caliCounties = CountyDataCollector.getCountyNames(CountyDataCollector.getCaliGeoJson())
-	cls.daily = DataCollector.mergeFirePrecipDataDaily()
-	cls.fsize_p90 =  DataCollector.getTotalFireSizeAnd90PctTable()
-	cls.FireAggregator = FireAggregations(cls.yearlyData, cls.caliCounties, cls.daily)
-	cls.allsize = cls.FireAggregator.getAllFireSizes()
-	cls.selected_year = 2003
+    @classmethod
+    def setUpClass(cls):
+        DataCollector = FirePrecipDataCollection(startYear, FIREPATH, PRECIP_PATH)
+        fires, years = DataCollector.getFiresData()
+        precip = DataCollector.getPrecipData()
+        daily = DataCollector.mergeFirePrecipDataDaily()
+        cls.CountyDataCollector = CaliforniaYearlyCounty(startYear, fires, years)
 ```
 
 The type of values we tested depended on the nature of the functions. The majority of functions were tested in a variety of ways. Our unit testing confirmed that our data processing methods and the application were running as expected.
