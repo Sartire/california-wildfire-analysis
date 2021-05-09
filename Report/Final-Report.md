@@ -23,7 +23,7 @@ We utilized several sources to develop our final dataset of wildfires in Califor
 - DATETIME: Date the wildfire started (YYYY-MM-DD)
 - MONTH: Month the wildfire occured
 
-To supplement our fire data with additional environmental conditions, we pulled rainfall measurement data from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level and transformed them into a daily time series.
+To supplement our fire data with additional environmental conditions, we pulled [hourly rainfall measurement data](https://www.ncdc.noaa.gov/cdo-web/search) from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level and transformed them into a daily time series.
 
 ## Design Process
 
@@ -62,7 +62,13 @@ The type of values we tested depended on the nature of the functions. The majori
 
 
 ## Results
-text and images
+
+There are some measurement issues in the fire data. We found that large portions of the fire causes were categorized as miscellaneous, missing, or undefined. We also found unusually high concentrations at fire sizes of one tenth of an acre and one acre, which we interpret as reporting bias. 
+
+Unsurprisingly, we found a persistent negative relationship between rainfall and acreage burnt in the past thirty days. This confirms the popular, common sense view of a rainy season and a dry fire season.
+
+There is a negative correlation between the yearly acreage burnt and the yearly percentage of fires accounting for 90 percent of the area burned. This suggests that it is not the sheer number of fires, but the presense of more extreme fires driving increased damage in California.
+
 
 ## Conclusions
 text
