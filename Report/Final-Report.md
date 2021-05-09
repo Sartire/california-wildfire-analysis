@@ -23,7 +23,19 @@ We utilized several sources to develop our final dataset of wildfires in Califor
 - DATETIME: Date the wildfire started (YYYY-MM-DD)
 - MONTH: Month the wildfire occured
 
-To supplement our fire data with additional environmental conditions, we pulled [hourly rainfall measurement data](https://www.ncdc.noaa.gov/cdo-web/search) from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level and transformed them into a daily time series.
+To supplement our fire data with additional environmental conditions, we pulled [hourly rainfall measurement data](https://www.ncdc.noaa.gov/cdo-web/search) from 2003-2015 from all NOAA Weather Stations throughout California. The RAW precipitation data was comprised of measurements by the hour for each station. We had to strip out missing values and observations with low data quality flags. It also included lat/lon coordinates of the station and elevation data. Using those station coordinates we aggregated the precipitation measurements to the county level and transformed them into a daily time series. The final precipitation dataset is comprised of the following columns:
+
+- STCT_FIPS: County FIPS code
+- date: observation date
+- year
+- month
+- day
+- station_sum: The sum of daily precipation for all stations in the county
+- station_mean: The mean of daily precipation for all stations in the county
+- past30_ss_sum: The 30 day rolling sum of station_sum for that county
+- past30_sm_sum: The 30 day rolling sum of station_mean for that county
+
+For our visualizations we aggregate `station_sum` to the state level. 
 
 ## Design Process
 
