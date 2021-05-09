@@ -180,7 +180,12 @@ def setUpClass(cls):
 The type of values we tested depended on the nature of the functions. The majority of functions were tested in a variety of ways. Our unit testing confirmed that our data processing methods and the application were running as expected.
 
 ## Conclusions
-text
+Through our analysis of wildfires in California from 1992-2015, we were able to confirm the inverse relationship of rainfall to number of fires, as well as identify what is probably a common misconception on the relationship of number of fires to area burnt.
+
+We found that in periods where extreme levels of damage occurred, it was more often that the majority of damage came from a select few or a single fire. This could perhaps be attributed to the aggressive nature of wildfires and their ability to rapidly spread, in relation to the reaction times of local emergency response teams. One way we would like to expand on this would be to incorporate data on locality fire department funding, as well as information on areas that fall under federal jurisdiction.
+
+Our analysis, as well as our dashboard could be useful to local and state lawmakers in California, and be influential on policy decisions regarding natural disaster response funding.
+
 
 ## References
 - Census Bureau. (2021, February 1). US Census Block Groups [Dataset]. US Census Bureau. http://www2.census.gov/geo/tiger/TIGER2020/BG/tl_2020_06_bg.zip
