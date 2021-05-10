@@ -149,6 +149,8 @@ Using a yearly data dictionary increased the algorithmic efficiency by retrievin
 
 In order to allow the people to interact with the data, we created a Dash framework. [Here](https://california-wildfire-analysis.herokuapp.com/), the specific year and chart can be selected to display the corresponding data. With year selected, users can look at the aggregate data in the charts and the county specific data by hovering the mouse over that county.
 
+The charts chosen were based on the belief of relevance and value brought to the user. Since the fires were categorized by catalyst (cause) of fires, graphs with the count and average fire size was created. Next was to focus on fire size. A graph was created to show the ten largest fires and two more showing the fire sizes over time across that year based on classification of size (both resampled to make the graph less clustered). With the precipitation data, the area burned compared with rainfall is used to show the relationship discussed further in the results. These graphs can be selected by changing the ‘Select chart:’ drop down on the right side of the page.
+
 ## Results
 
 The final result of our project was an interactive Dash app, hosted through Heroku, that visualized the wildfire data on a map and through charts based on the selected year. The web map in the dashboard is interactive, allowing the user to zoom in and out, pan across the map, and hover over areas to bring up a pop-up showing the number of fires in that county for the selected year.
