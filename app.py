@@ -164,7 +164,7 @@ app.layout = html.Div(
                 ),
             ],
         ),
-        dcc.Link(
+        html.A(
             id='footer',
             #children='<a href="{https://github.com/Sartire/california-wildfire-analysis}">{Github}</a>',
             children = ['Github'],
